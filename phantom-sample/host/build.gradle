@@ -1,0 +1,72 @@
+apply plugin: 'com.android.application'
+/*
+ * Copyright (C) 2017-2018 Manbang Group
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/** phantom框架宿主 gradle 插件使用 */
+apply plugin: 'com.wlqq.phantom.host'
+
+android {
+    compileSdkVersion COMPILE_SDK_VERSION
+    buildToolsVersion BUILD_TOOLS_VERSION
+    defaultConfig {
+        applicationId "com.wlqq.phantom.sample"
+        minSdkVersion MIN_SDK_VERSION
+        targetSdkVersion TARGET_SDK_VERSION
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+
+    compile "com.wlqq.phantom:phantom-host-lib:3.0.0"
+    compile "com.wlqq.phantom:phantom-communication-lib:3.0.0"
+
+    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
+    compile "com.android.support:appcompat-v7:${ANDROID_SUPPORT_LIB_VERSION}"
+    compile "com.android.support:recyclerview-v7:${ANDROID_SUPPORT_LIB_VERSION}"
+
+    compile 'io.github.shaobin0604:awesomelog:1.0.1'
+
+    testCompile "junit:junit:${JUNIT_VERSION}"
+
+    compile 'com.tencent.bugly:crashreport_upgrade:1.1.7'
+}

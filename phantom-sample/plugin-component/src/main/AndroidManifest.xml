@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (C) 2017-2018 Manbang Group
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.wlqq.phantom.plugin.component">
+
+    <application
+        android:name=".app.PluginComponentApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Light.NoTitleBar">
+
+        <!-- 2.x 的插件需要运行在 Phantom 2.0.0 及以上版本 -->
+        <meta-data
+            android:name="phantom.service.import.PhantomVersionService"
+            android:value="20000"/>
+
+        <activity
+            android:name=".MainActivity"
+            android:label="MainActivity"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SingleInstanceActivity"
+            android:launchMode="singleInstance"/>
+        <activity
+            android:name=".SingleTopActivity"
+            android:launchMode="singleTop"/>
+        <activity
+            android:name=".SingleTaskActivity"
+            android:launchMode="singleTask"/>
+        <activity
+            android:name=".StandardActivity"
+            android:launchMode="standard"/>
+
+
+        <service android:name=".service.PluginIntentService"/>
+        <service
+            android:name=".service.PluginService">
+        </service>
+    </application>
+
+</manifest>
