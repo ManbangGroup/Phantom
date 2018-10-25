@@ -10,12 +10,12 @@ Phantom 是满帮集团开源的一套稳定、灵活、兼容性好的 Android 
 * 兼容性好：**零** Hook，没有调用系统的 hidden API，完美兼容 Android 9.0
 * 功能完整：插件支持独立应用的绝大部分特性
 * 稳定可靠：历经货车帮旗下多款产品 50+ 插件两年多千万级用户验证（稳定性和兼容性指标都在 4 个 9 以上）
-* 部署灵活：宿主无需升级（无需在宿主 AndroidManifest.xml 中预埋组件），即可支持插件新增组件，甚至新增插件
+* 部署灵活：宿主无需升级（无需在宿主 `AndroidManifest.xml` 中预埋组件），即可支持插件新增组件，甚至新增插件
 * 易于集成：无论插件端还是宿主端，只需『数行』就能完成接入，改造成本低
 
 ## Phantom 与主流开源插件框架的对比
 
-| 特性 | Atlas | Small | VirtualAPK | RePlugin | Phantom |
+| 特性 | [Atlas][1] | [Small][2] | [VirtualAPK][3] | [RePlugin][4] | [Phantom][5] |
 | ---- | ---- | ---- | ---- | ---- | ---- |
 | Hook 数量 | 大量 | 较多 | 较多 | 仅一处 | 无 |
 | 四大组件 | 全支持 | 只支持 `Activity` | 全支持 | 全支持 | 除 `ContentProvider` 外，全支持 |
@@ -180,13 +180,21 @@ phantomPluginConfig {
 
 ## License
 
-Phantom is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file.
+Apache License 2.0, part MIT. See the [LICENSE](LICENSE) file for details.
 
 ## 参考以及使用的开源项目
 
 | 项目名称 | 开源协议 | 说明 |
 | ---- | ---- | ---- |
-| [Maven](https://github.com/apache/maven) | [Apache License](https://github.com/apache/maven/blob/master/LICENSE) | 依赖库版本比较 |
-| [jsemver](https://github.com/zafarkhaja/jsemver) | [MIT License](https://github.com/zafarkhaja/jsemver/blob/master/LICENSE) | 依赖库版本比较 |
-| [Atlas](https://github.com/alibaba/atlas) | [Apache License](https://github.com/alibaba/atlas/blob/master/LICENSE) | 首次加载插件提速 jar 包及 so 库 |
-| [RePlugin](https://github.com/Qihoo360/RePlugin) | [Apache License](https://github.com/Qihoo360/RePlugin/blob/master/LICENSE) | gradle plugin 快速部署插件到宿主<br/>反射工具类 ReflectUtils |
+| [Maven][6] | [Apache License](https://github.com/apache/maven/blob/master/LICENSE) | 依赖库版本比较 |
+| [jsemver][7] | [MIT License](https://github.com/zafarkhaja/jsemver/blob/master/LICENSE) | 依赖库版本比较 |
+| [Atlas][1] | [Apache License](https://github.com/alibaba/atlas/blob/master/LICENSE) | 首次加载插件提速 jar 包及 so 库 |
+| [RePlugin][4] | [Apache License](https://github.com/Qihoo360/RePlugin/blob/master/LICENSE) | gradle plugin 快速部署插件到宿主<br/>反射工具类 ReflectUtils |
+
+[1]: https://github.com/alibaba/atlas "Atlas"
+[2]: https://github.com/wequick/Small "Small"
+[3]: https://github.com/didi/VirtualAPK "VirtualAPK"
+[4]: https://github.com/Qihoo360/RePlugin "RePlugin"
+[5]: https://github.com/ManbangGroup/Phantom "Phantom"
+[6]: https://github.com/apache/maven "Maven"
+[7]: https://github.com/zafarkhaja/jsemver "jsemver"
