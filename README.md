@@ -159,7 +159,7 @@ phantomPluginConfig {
 * `./gradlew phInstallPluginDebug`
 * `./gradlew phInstallPluginRelease`
 
-## 进阶说明
+## 进阶指南
 
 * [插件框架初始化](docs/phantom-core-init.md)
 * [插件管理](docs/plugin-management.md)
@@ -170,19 +170,29 @@ phantomPluginConfig {
 * [Native 支持](docs/native.md)
 * [已知问题](docs/known-issues.md)
 
-## 示例源代码
+## 示例应用
 
 * [phantom-sample](phantom-sample)
 
 ## 联系我们
 
-如果你在使用过程中遇到问题，或者有好的建议，欢迎给我们提 [issue](https://github.com/ManbangGroup/Phantom/issues) 或 [Pull Request](https://github.com/ManbangGroup/Phantom/pulls)。详细说明请移步 [Contributing Guide](CONTRIBUTING.md)
+如果你在使用过程中遇到问题，或者有好的建议，欢迎给我们提 [issue](https://github.com/ManbangGroup/Phantom/issues) 或 [Pull Request](https://github.com/ManbangGroup/Phantom/pulls)。详细说明请移步 [贡献指南](CONTRIBUTING.md)
 
-## License
+临时交流 QQ 群号：**690051836**
+
+## 项目作者
+
+* 杨锋 - 核心开发者 - [iceskyblue](https://github.com/iceskyblue)
+* 邵彬 - 核心开发者 - [shaobin0604](https://github.com/shaobin0604)
+* 俞静波 - 主要贡献者 - [CalmYu](https://github.com/CalmYu)
+
+## 开源协议
 
 Apache License 2.0, part MIT. See the [LICENSE](LICENSE) file for details.
 
-## 参考以及使用的开源项目
+## 致谢
+
+参考以及使用的开源项目
 
 | 项目名称 | 开源协议 | 说明 |
 | ---- | ---- | ---- |
