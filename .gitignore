@@ -5,3 +5,7 @@ build/
 *.iml
 local.properties
 
+# eclipse
+.classpath
+.project
+.settings/
