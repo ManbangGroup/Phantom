@@ -20,4 +20,4 @@
 * [PLDroidPlayer](https://github.com/pili-engineering/PLDroidPlayer)
 * [android-gif-drawable](https://github.com/koral--/android-gif-drawable)
 
-> 如果你在项目中有使用包含 so 的第三方库并确认没有兼容性问题，请联系我们或发 PR。让我们一起共同完善该清单。
+> 如果你在项目中有使用包含 so 的第三方库并确认没有兼容性问题，请联系我们或发 PR，共同完善该清单。
