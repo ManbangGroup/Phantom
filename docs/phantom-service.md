@@ -125,3 +125,20 @@ Phantom Service 的调用，可简单分两步：
     }
     ```
     > 注：详细参考 Sample 源代码 [Host](../phantom-sample/host)
+
+## 混淆配置
+
+### 宿主
+
+宿主依赖的 `phantom-host-lib` 已配置相应的 `consumerProguardFiles`，因此不需要额外的配置。
+
+### 插件
+
+在插件的 `proguard` 配置中加入代码
+
+```
+# Phantom Service method
+-keepclassmembers class * {
+    @com.wlqq.phantom.communication.RemoteMethod <methods>;
+}
+```
