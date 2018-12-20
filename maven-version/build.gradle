@@ -17,7 +17,7 @@
 apply plugin: 'java'
 
 dependencies {
-    testCompile "junit:junit:$JUNIT_VERSION"
+    testCompile "junit:junit:${testVersion.junit}"
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 

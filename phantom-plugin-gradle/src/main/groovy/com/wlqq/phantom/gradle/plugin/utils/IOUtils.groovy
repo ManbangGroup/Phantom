@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wlqq.phantom.gradle.plugin.utils;
+package com.wlqq.phantom.gradle.plugin.utils
 
 
 class IOUtils {
@@ -25,11 +25,11 @@ class IOUtils {
      *            可关闭的流对象列表
      * @throws IOException
      */
-    public static void close(Closeable... closeables) throws IOException {
+    static void close(Closeable... closeables) throws IOException {
         if (closeables != null) {
             for (Closeable closeable : closeables) {
                 if (closeable != null) {
-                    closeable.close();
+                    closeable.close()
                 }
             }
         }
@@ -41,9 +41,9 @@ class IOUtils {
      * @param closeables
      *            可关闭的流对象列表
      */
-    public static void closeQuietly(Closeable... closeables) {
+    static void closeQuietly(Closeable... closeables) {
         try {
-            close(closeables);
+            close(closeables)
         } catch (IOException e) {
             // do nothing
         }

@@ -18,13 +18,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.wlqq.phantom.plugin'
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
+    compileSdkVersion androidVersion.compileSdk
+    buildToolsVersion androidVersion.buildTools
 
     defaultConfig {
         applicationId "com.wlqq.phantom.plugin.component"
-        minSdkVersion MIN_SDK_VERSION
-        targetSdkVersion TARGET_SDK_VERSION
+        minSdkVersion androidVersion.minSdk
+        targetSdkVersion androidVersion.targetSdk
         versionCode 10000
         versionName "1.0.0"
     }
@@ -44,28 +44,31 @@ android {
     }
 
     applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.outputFile = new File(output.outputFile.parent,
-                    "${variant.applicationId}_${variant.versionName}.apk")
-
-            if (output.zipAlign != null) {
-                output.zipAlign.doLast {
-                    output.zipAlign.inputFile.delete()
-                }
-            }
+        variant.outputs.all { output ->
+            outputFileName = "${variant.applicationId}_${variant.versionName}.apk"
         }
     }
 }
 
 dependencies {
-    provided 'com.wlqq.phantom:phantom-communication-lib:3.0.0'
-    provided 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
+    compileOnly 'com.wlqq.phantom:phantom-communication-lib:3.0.0'
+    compileOnly 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
 
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
-    compile 'io.github.shaobin0604:awesomelog:1.0.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.android.support:support-v4:${androidVersion.supportLib}"
+    implementation "com.android.support:support-core-ui:${androidVersion.supportLib}"
+    implementation "com.android.support:support-compat:${androidVersion.supportLib}"
+    implementation "com.android.support:support-media-compat:${androidVersion.supportLib}"
+    implementation "com.android.support:support-core-utils:${androidVersion.supportLib}"
+    implementation "com.android.support:support-fragment:${androidVersion.supportLib}"
+    implementation "com.android.support:versionedparcelable:${androidVersion.supportLib}"
+    implementation "android.arch.lifecycle:runtime:${androidVersion.archLib}"
+    implementation "android.arch.lifecycle:common:${androidVersion.archLib}"
+    implementation "android.arch.core:common:${androidVersion.archLib}"
 
-    testCompile 'junit:junit:4.12'
+    implementation 'io.github.shaobin0604:awesomelog:1.0.1'
+
+    testImplementation "junit:junit:${testVersion.junit}"
 }
 
 def deletePluginInHost() {
@@ -108,7 +111,16 @@ afterEvaluate { project ->
 
 phantomPluginConfig {
     /*------------------------------ 剔除公共库配置 BEGIN ----------------------------*/
-    excludeLib "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
+    excludeLib "com.android.support:support-v4:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-core-ui:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-compat:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-media-compat:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-core-utils:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-fragment:${androidVersion.supportLib}"
+    excludeLib "com.android.support:versionedparcelable:${androidVersion.supportLib}"
+    excludeLib "android.arch.lifecycle:runtime:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:common:${androidVersion.archLib}"
+    excludeLib "android.arch.core:common:${androidVersion.archLib}"
     /*------------------------------ 剔除公共库配置  END  ----------------------------*/
 
     /*------------------------------ 混淆配置 BEGIN ------------------------------*/

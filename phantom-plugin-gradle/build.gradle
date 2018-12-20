@@ -19,13 +19,13 @@ apply plugin: 'groovy'
 dependencies {
     compile gradleApi()//gradle sdk
     compile localGroovy()//groovy sdk
-    compile 'com.android.tools.build:gradle:2.3.3'
+    compile "com.android.tools.build:gradle:${androidVersion.androidGradlePlugin}"
     compile 'javassist:javassist:3.12.1.GA'
 }
 
 ext {
     POM_ARTIFACT_ID = 'phantom-plugin-gradle'
-    POM_VERSION_NAME = rootProject.ext.PHANTOM_VERSION_NAME
+    POM_VERSION_NAME = phantomVersion.pluginGradle
     POM_DESC = 'phantom plugin gradle plugin'
 }
 

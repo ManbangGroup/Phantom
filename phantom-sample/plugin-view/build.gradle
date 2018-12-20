@@ -18,13 +18,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.wlqq.phantom.plugin'
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
+    compileSdkVersion androidVersion.compileSdk
+    buildToolsVersion androidVersion.buildTools
 
     defaultConfig {
         applicationId "com.wlqq.phantom.plugin.view"
-        minSdkVersion MIN_SDK_VERSION
-        targetSdkVersion TARGET_SDK_VERSION
+        minSdkVersion androidVersion.minSdk
+        targetSdkVersion androidVersion.targetSdk
         versionCode 10000
         versionName "1.0.0"
     }
@@ -44,15 +44,8 @@ android {
     }
 
     applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.outputFile = new File(output.outputFile.parent,
-                    "${variant.applicationId}_${variant.versionName}.apk")
-
-            if (output.zipAlign != null) {
-                output.zipAlign.doLast {
-                    output.zipAlign.inputFile.delete()
-                }
-            }
+        variant.outputs.all { output ->
+            outputFileName = "${variant.applicationId}_${variant.versionName}.apk"
         }
     }
 }
@@ -62,7 +55,7 @@ dependencies {
     provided 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
+    compile "com.android.support:support-v4:${androidVersion.supportLib}"
     compile 'io.github.shaobin0604:awesomelog:1.0.1'
 
     testCompile 'junit:junit:4.12'
@@ -108,7 +101,7 @@ afterEvaluate { project ->
 
 phantomPluginConfig {
     /*------------------------------ 剔除公共库配置 BEGIN ----------------------------*/
-    excludeLib "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
+    excludeLib "com.android.support:support-v4:${androidVersion.supportLib}"
     /*------------------------------ 剔除公共库配置  END  ----------------------------*/
 
     /*------------------------------ 混淆配置 BEGIN ------------------------------*/

@@ -19,12 +19,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.wlqq.phantom.host'
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
+    compileSdkVersion androidVersion.compileSdk
+    buildToolsVersion androidVersion.buildTools
     defaultConfig {
         applicationId "com.wlqq.phantom.sample"
-        minSdkVersion MIN_SDK_VERSION
-        targetSdkVersion TARGET_SDK_VERSION
+        minSdkVersion androidVersion.minSdk
+        targetSdkVersion androidVersion.targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -60,13 +60,13 @@ dependencies {
     compile "com.wlqq.phantom:phantom-host-lib:3.0.0"
     compile "com.wlqq.phantom:phantom-communication-lib:3.0.0"
 
-    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
-    compile "com.android.support:appcompat-v7:${ANDROID_SUPPORT_LIB_VERSION}"
-    compile "com.android.support:recyclerview-v7:${ANDROID_SUPPORT_LIB_VERSION}"
+    compile "com.android.support:support-v4:${androidVersion.supportLib}"
+    compile "com.android.support:appcompat-v7:${androidVersion.supportLib}"
+    compile "com.android.support:recyclerview-v7:${androidVersion.supportLib}"
 
     compile 'io.github.shaobin0604:awesomelog:1.0.1'
 
-    testCompile "junit:junit:${JUNIT_VERSION}"
+    testCompile "junit:junit:${testVersion.junit}"
 
     compile 'com.tencent.bugly:crashreport_upgrade:1.1.7'
 }

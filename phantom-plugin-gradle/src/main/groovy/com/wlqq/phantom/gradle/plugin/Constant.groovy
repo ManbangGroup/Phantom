@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.wlqq.phantom.gradle.plugin;
+package com.wlqq.phantom.gradle.plugin
 
 /**
  * Modified from https://github.com/Qihoo360/RePlugin/blob/dev/replugin-plugin-gradle/src/main/groovy/com/qihoo360/replugin/gradle/plugin/AppConstant.groovy

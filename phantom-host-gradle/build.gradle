@@ -24,7 +24,7 @@ dependencies {
 
 ext {
     POM_ARTIFACT_ID = 'phantom-host-gradle'
-    POM_VERSION_NAME = rootProject.ext.PHANTOM_VERSION_NAME
+    POM_VERSION_NAME = phantomVersion.hostGradle
     POM_DESC = 'phantom host gradle plugin'
 }
 

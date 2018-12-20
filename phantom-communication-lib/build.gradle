@@ -31,7 +31,7 @@ tasks.withType(JavaCompile) {
 
 ext {
     POM_ARTIFACT_ID = 'phantom-communication-lib'
-    POM_VERSION_NAME = rootProject.ext.PHANTOM_VERSION_NAME
+    POM_VERSION_NAME = phantomVersion.communicationLib
     POM_DESC = 'phantom communication library'
 }
 
