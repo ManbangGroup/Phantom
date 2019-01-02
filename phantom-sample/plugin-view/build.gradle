@@ -51,14 +51,27 @@ android {
 }
 
 dependencies {
-    provided 'com.wlqq.phantom:phantom-communication-lib:3.0.0'
-    provided 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
+    compileOnly 'com.wlqq.phantom:phantom-communication-lib:3.0.0'
+    compileOnly 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
 
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:support-v4:${androidVersion.supportLib}"
-    compile 'io.github.shaobin0604:awesomelog:1.0.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    testCompile 'junit:junit:4.12'
+    implementation "com.android.support:support-v4:${androidVersion.supportLib}"
+    implementation "com.android.support:support-core-ui:${androidVersion.supportLib}"
+    implementation "com.android.support:support-compat:${androidVersion.supportLib}"
+    implementation "com.android.support:support-media-compat:${androidVersion.supportLib}"
+    implementation "com.android.support:support-core-utils:${androidVersion.supportLib}"
+    implementation "com.android.support:support-fragment:${androidVersion.supportLib}"
+    implementation "com.android.support:versionedparcelable:${androidVersion.supportLib}"
+    implementation "android.arch.lifecycle:runtime:${androidVersion.archLib}"
+    implementation "android.arch.lifecycle:common:${androidVersion.archLib}"
+    implementation "android.arch.lifecycle:livedata:${androidVersion.archLib}"
+    implementation "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
+    implementation "android.arch.core:common:${androidVersion.archLib}"
+
+    implementation 'io.github.shaobin0604:awesomelog:1.0.1'
+
+    testImplementation 'junit:junit:4.12'
 }
 
 def deletePluginInHost() {
@@ -76,10 +89,10 @@ def deletePluginInHost() {
     }
 }
 
-def copyPluginToHost() {
+def copyPluginToHost(String dir) {
     println "copy build plugin to app assets..."
     copy {
-        from(buildDir.absolutePath + '/outputs/apk/') {
+        from(buildDir.absolutePath + '/outputs/apk/' + dir) {
             include('*.apk')
         }
 
@@ -90,18 +103,29 @@ def copyPluginToHost() {
 afterEvaluate { project ->
     project.tasks.assembleDebug.doLast {
         deletePluginInHost()
-        copyPluginToHost()
+        copyPluginToHost('debug')
     }
 
     project.tasks.assembleRelease.doLast {
         deletePluginInHost()
-        copyPluginToHost()
+        copyPluginToHost('release')
     }
 }
 
 phantomPluginConfig {
     /*------------------------------ 剔除公共库配置 BEGIN ----------------------------*/
     excludeLib "com.android.support:support-v4:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-core-ui:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-compat:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-media-compat:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-core-utils:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-fragment:${androidVersion.supportLib}"
+    excludeLib "com.android.support:versionedparcelable:${androidVersion.supportLib}"
+    excludeLib "android.arch.lifecycle:runtime:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:common:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:livedata:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
+    excludeLib "android.arch.core:common:${androidVersion.archLib}"
     /*------------------------------ 剔除公共库配置  END  ----------------------------*/
 
     /*------------------------------ 混淆配置 BEGIN ------------------------------*/

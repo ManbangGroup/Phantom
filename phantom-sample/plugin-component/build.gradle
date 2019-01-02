@@ -64,6 +64,8 @@ dependencies {
     implementation "com.android.support:versionedparcelable:${androidVersion.supportLib}"
     implementation "android.arch.lifecycle:runtime:${androidVersion.archLib}"
     implementation "android.arch.lifecycle:common:${androidVersion.archLib}"
+    implementation "android.arch.lifecycle:livedata:${androidVersion.archLib}"
+    implementation "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
     implementation "android.arch.core:common:${androidVersion.archLib}"
 
     implementation 'io.github.shaobin0604:awesomelog:1.0.1'
@@ -86,10 +88,10 @@ def deletePluginInHost() {
     }
 }
 
-def copyPluginToHost() {
+def copyPluginToHost(String dir) {
     println "copy build plugin to app assets..."
     copy {
-        from(buildDir.absolutePath + '/outputs/apk/') {
+        from(buildDir.absolutePath + '/outputs/apk/' + dir) {
             include('*.apk')
         }
 
@@ -100,12 +102,12 @@ def copyPluginToHost() {
 afterEvaluate { project ->
     project.tasks.assembleDebug.doLast {
         deletePluginInHost()
-        copyPluginToHost()
+        copyPluginToHost('debug')
     }
 
     project.tasks.assembleRelease.doLast {
         deletePluginInHost()
-        copyPluginToHost()
+        copyPluginToHost('release')
     }
 }
 
@@ -120,6 +122,8 @@ phantomPluginConfig {
     excludeLib "com.android.support:versionedparcelable:${androidVersion.supportLib}"
     excludeLib "android.arch.lifecycle:runtime:${androidVersion.archLib}"
     excludeLib "android.arch.lifecycle:common:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:livedata:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
     excludeLib "android.arch.core:common:${androidVersion.archLib}"
     /*------------------------------ 剔除公共库配置  END  ----------------------------*/
 
