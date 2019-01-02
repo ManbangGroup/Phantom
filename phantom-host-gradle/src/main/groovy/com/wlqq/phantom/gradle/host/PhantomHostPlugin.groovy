@@ -18,6 +18,7 @@ package com.wlqq.phantom.gradle.host
 
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.AppPlugin
+import com.android.build.gradle.internal.api.ApplicationVariantImpl
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -31,7 +32,12 @@ class PhantomHostPlugin implements Plugin<Project> {
 
         if (project.plugins.hasPlugin(AppPlugin)) {
             def android = project.extensions.getByType(AppExtension)
-            android.applicationVariants.all { variant ->
+
+            def version = new ComparableVersion(Utils.getAgpVersion())
+            println "${TAG} Your Gradle Android Plugin version is: ${version}"
+            project.extensions.extraProperties[Constant.AGP_VERSION] = version
+
+            android.applicationVariants.all { ApplicationVariantImpl variant ->
                 def variantData = variant.variantData
                 def scope = variantData.scope
 
@@ -45,7 +51,7 @@ class PhantomHostPlugin implements Plugin<Project> {
                 def mergeAssetsTask = project.tasks.getByName(mergeAssetsTaskName)
                 if (mergeAssetsTask) {
                     generateCompileDependenciesTask.doLast {
-                        new CompileDependenciesFileGenerator(project, mergeAssetsTask.outputDir, 'compile_dependencies.txt').generateFile()
+                        new CompileDependenciesFileGenerator(project, variant, mergeAssetsTask.outputDir, 'compile_dependencies.txt').generateFile()
                     }
 
                     generateCompileDependenciesTask.dependsOn mergeAssetsTask

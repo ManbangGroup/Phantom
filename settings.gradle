@@ -16,10 +16,10 @@
 
 //include ':phantom-host-lib'
 //include ':phantom-plugin-lib'
-//include ':phantom-host-gradle'
+include ':phantom-host-gradle'
 include ':phantom-plugin-gradle'
 //include ':phantom-communication-lib'
 //include ':maven-version'
 include ':phantom-sample:host'
 include ':phantom-sample:plugin-component'
-//include ':phantom-sample:plugin-view'
+include ':phantom-sample:plugin-view'

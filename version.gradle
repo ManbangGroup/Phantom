@@ -13,7 +13,7 @@ ext {
     phantomVersion = [
             hostLib         : "3.0.0",
             hostLibInt      : 30000,
-            hostGradle      : "3.0.0",
+            hostGradle      : "3.1.0",
             pluginLib       : "3.0.0",
             pluginGradle    : "3.1.0",
             communicationLib: "3.0.0",
