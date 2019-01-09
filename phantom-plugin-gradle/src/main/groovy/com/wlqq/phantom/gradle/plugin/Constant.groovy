@@ -56,6 +56,10 @@ phantomPluginConfig {
     // 其它配置 ...
 }
 '''
+    static final ComparableVersion AGP_3_0 = new ComparableVersion("3.0.0")
+    static final ComparableVersion AGP_3_1 = new ComparableVersion("3.1.0")
+
+    static final String AGP_VERSION = "AGP_VERSION"
 
     private Constant() {}
 }

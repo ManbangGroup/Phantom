@@ -21,6 +21,8 @@ dependencies {
     compile localGroovy()//groovy sdk
     compileOnly "com.android.tools.build:gradle:${androidVersion.androidGradlePlugin}"
     compile 'javassist:javassist:3.12.1.GA'
+    // https://mvnrepository.com/artifact/org.jooq/joor-java-6
+    compile group: 'org.jooq', name: 'joor-java-6', version: '0.9.10'
 }
 
 ext {

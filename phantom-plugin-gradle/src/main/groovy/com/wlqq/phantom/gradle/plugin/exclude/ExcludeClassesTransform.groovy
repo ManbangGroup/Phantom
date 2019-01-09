@@ -71,6 +71,7 @@ class ExcludeClassesTransform extends Transform {
     PhantomPluginConfig mWlExclude
     Set<String> mRelativeLibs
 
+
     ExcludeClassesTransform(Project project) {
         this.project = project
         project.afterEvaluate {
