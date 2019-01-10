@@ -34,19 +34,21 @@ import org.joor.Reflect
 
 class ProvidedDependenciesFileGenerator extends FileGenerator {
     private static final def COMPILE_ONLY_FILTER = { String gav ->
-        !gav.startsWith('com.wlqq.phantom:phantom-plugin-lib:') && !gav.startsWith('com.android.tools.build:gradle:')
+        !gav.startsWith('com.wlqq.phantom:phantom-plugin-lib:') &&
+                !gav.startsWith('com.android.tools.build:gradle:') &&
+                !gav.startsWith('com.google.android:android:')
     }
 
     Project project
-    private ApplicationVariantImpl applicationVariant
-    private ComparableVersion agpVersion
+    ApplicationVariantImpl applicationVariant
+    ComparableVersion agpVersion
 
 
     ProvidedDependenciesFileGenerator(Project project, ApplicationVariantImpl variant, File outputFileDir, String outputFileName) {
         super(outputFileDir, outputFileName)
         this.project = project
         this.applicationVariant = variant
-        this.agpVersion = (ComparableVersion) project.getExtensions().getExtraProperties().get(Constant.AGP_VERSION)
+        this.agpVersion = (ComparableVersion) project.extensions.extraProperties[Constant.AGP_VERSION]
     }
 
     @Override
@@ -159,7 +161,8 @@ class ProvidedDependenciesFileGenerator extends FileGenerator {
         return getMavenArtifacts(allArtifacts)
     }
 
-    private static Set<String> getMavenArtifacts(Set<ArtifactDependencyGraph.HashableResolvedArtifactResult> allArtifacts) {
+    private
+    static Set<String> getMavenArtifacts(Set<ArtifactDependencyGraph.HashableResolvedArtifactResult> allArtifacts) {
         Set<String> deps = new HashSet<>()
 
         for (ArtifactDependencyGraph.HashableResolvedArtifactResult result : allArtifacts) {

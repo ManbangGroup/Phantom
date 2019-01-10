@@ -55,12 +55,12 @@ android {
 }
 
 dependencies {
-    testCompile "junit:junit:${testVersion.junit}"
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile "com.android.support:support-v4:${androidVersion.supportLib}"
+    testImplementation "junit:junit:${testVersion.junit}"
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "com.android.support:support-v4:${androidVersion.supportLib}"
 
-    compile "com.wlqq.phantom:maven-version:1.1.0"
-    compile "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
+    implementation "com.wlqq.phantom:maven-version:1.1.0"
+    implementation "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
 }
 
 ext {

@@ -56,18 +56,6 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.android.support:support-v4:${androidVersion.supportLib}"
-    implementation "com.android.support:support-core-ui:${androidVersion.supportLib}"
-    implementation "com.android.support:support-compat:${androidVersion.supportLib}"
-    implementation "com.android.support:support-media-compat:${androidVersion.supportLib}"
-    implementation "com.android.support:support-core-utils:${androidVersion.supportLib}"
-    implementation "com.android.support:support-fragment:${androidVersion.supportLib}"
-    implementation "com.android.support:versionedparcelable:${androidVersion.supportLib}"
-    implementation "android.arch.lifecycle:runtime:${androidVersion.archLib}"
-    implementation "android.arch.lifecycle:common:${androidVersion.archLib}"
-    implementation "android.arch.lifecycle:livedata:${androidVersion.archLib}"
-    implementation "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
-    implementation "android.arch.core:common:${androidVersion.archLib}"
-
     implementation 'io.github.shaobin0604:awesomelog:1.0.1'
 
     testImplementation "junit:junit:${testVersion.junit}"
@@ -112,20 +100,37 @@ afterEvaluate { project ->
 }
 
 phantomPluginConfig {
-    /*------------------------------ 剔除公共库配置 BEGIN ----------------------------*/
+    /*------------------------------ 剔除 support-v4 及其依赖的库 BEGIN ----------------------------*/
     excludeLib "com.android.support:support-v4:${androidVersion.supportLib}"
     excludeLib "com.android.support:support-core-ui:${androidVersion.supportLib}"
     excludeLib "com.android.support:support-compat:${androidVersion.supportLib}"
     excludeLib "com.android.support:support-media-compat:${androidVersion.supportLib}"
     excludeLib "com.android.support:support-core-utils:${androidVersion.supportLib}"
     excludeLib "com.android.support:support-fragment:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-annotations:${androidVersion.supportLib}"
+    excludeLib "com.android.support:cursoradapter:${androidVersion.supportLib}"
+    excludeLib "com.android.support:interpolator:${androidVersion.supportLib}"
     excludeLib "com.android.support:versionedparcelable:${androidVersion.supportLib}"
+    excludeLib "com.android.support:documentfile:${androidVersion.supportLib}"
+    excludeLib "com.android.support:customview:${androidVersion.supportLib}"
+    excludeLib "com.android.support:slidingpanelayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:swiperefreshlayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:drawerlayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:coordinatorlayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:loader:${androidVersion.supportLib}"
+    excludeLib "com.android.support:viewpager:${androidVersion.supportLib}"
+    excludeLib "com.android.support:collections:${androidVersion.supportLib}"
+    excludeLib "com.android.support:asynclayoutinflater:${androidVersion.supportLib}"
+    excludeLib "com.android.support:print:${androidVersion.supportLib}"
+    excludeLib "com.android.support:localbroadcastmanager:${androidVersion.supportLib}"
+
+    excludeLib "android.arch.lifecycle:viewmodel:${androidVersion.archLib}"
     excludeLib "android.arch.lifecycle:runtime:${androidVersion.archLib}"
     excludeLib "android.arch.lifecycle:common:${androidVersion.archLib}"
     excludeLib "android.arch.lifecycle:livedata:${androidVersion.archLib}"
     excludeLib "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
     excludeLib "android.arch.core:common:${androidVersion.archLib}"
-    /*------------------------------ 剔除公共库配置  END  ----------------------------*/
+    /*------------------------------ 删除 support-v4 及其依赖的库  END  ----------------------------*/
 
     /*------------------------------ 混淆配置 BEGIN ------------------------------*/
     libraryJarsProguardFile file('proguard-phantom.pro')
