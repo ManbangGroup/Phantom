@@ -19,7 +19,7 @@ apply from: "version.gradle"
 
 buildscript {
     repositories {
-        mavenLocal()
+//        mavenLocal()
         maven {
             url 'http://maven.aliyun.com/nexus/content/groups/public/'
         }
@@ -39,7 +39,7 @@ buildscript {
 
 allprojects {
     repositories {
-        mavenLocal()
+//        mavenLocal()
         maven {
             url 'http://maven.aliyun.com/nexus/content/groups/public/'
         }
