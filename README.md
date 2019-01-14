@@ -199,7 +199,8 @@ Apache License 2.0, part MIT. See the [LICENSE](LICENSE) file for details.
 | [Maven][6] | [Apache License](https://github.com/apache/maven/blob/master/LICENSE) | 依赖库版本比较 |
 | [jsemver][7] | [MIT License](https://github.com/zafarkhaja/jsemver/blob/master/LICENSE) | 依赖库版本比较 |
 | [Atlas][1] | [Apache License](https://github.com/alibaba/atlas/blob/master/LICENSE) | 首次加载插件提速 jar 包及 so 库 |
-| [RePlugin][4] | [Apache License](https://github.com/Qihoo360/RePlugin/blob/master/LICENSE) | gradle plugin 快速部署插件到宿主<br/>反射工具类 ReflectUtils |
+| [RePlugin][4] | [Apache License](https://github.com/Qihoo360/RePlugin/blob/master/LICENSE) | Gradle Plugin 快速部署插件到宿主<br/>反射工具类 ReflectUtils |
+| [VirtualApk][8] | [Apache License](https://github.com/didi/VirtualAPK/blob/master/LICENSE) | 构建 Gradle Plugin 对 Gradle 4.x + Android Gradle Plugin 3.x 的兼容处理 |
 
 [1]: https://github.com/alibaba/atlas "Atlas"
 [2]: https://github.com/wequick/Small "Small"
@@ -208,3 +209,4 @@ Apache License 2.0, part MIT. See the [LICENSE](LICENSE) file for details.
 [5]: https://github.com/ManbangGroup/Phantom "Phantom"
 [6]: https://github.com/apache/maven "Maven"
 [7]: https://github.com/zafarkhaja/jsemver "jsemver"
+[8]: https://github.com/didi/VirtualAPK "VirtualAPK"
