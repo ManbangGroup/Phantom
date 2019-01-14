@@ -28,9 +28,9 @@ abstract class FileGenerator {
         this.outputFileName = outputFileName
     }
 
-    protected abstract String getContent();
+    protected abstract String getContent()
 
-    public final void generateFile() throws GradleException {
+    final void generateFile() throws GradleException {
         try {
             if (!outputFileDir.exists()) {
                 println "${Constant.TAG} mkdirs ${outputFileDir.absolutePath}: ${outputFileDir.mkdirs()}"

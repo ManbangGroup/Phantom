@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package com.wlqq.phantom.gradle.plugin;
+package com.wlqq.phantom.gradle.plugin
 
 /**
  * Modified from https://github.com/Qihoo360/RePlugin/blob/dev/replugin-plugin-gradle/src/main/groovy/com/qihoo360/replugin/gradle/plugin/AppConstant.groovy
  */
 class Constant {
     /** 版本号 */
-    def static final VER = "3.0.0"
+    def static final VER = "3.1.0"
 
     /** 打印信息时候的前缀 */
     def static final TAG = "[ phantom-plugin-v${VER} ]"
@@ -56,6 +56,10 @@ phantomPluginConfig {
     // 其它配置 ...
 }
 '''
+    static final ComparableVersion AGP_3_0 = new ComparableVersion("3.0.0")
+    static final ComparableVersion AGP_3_1 = new ComparableVersion("3.1.0")
+
+    static final String AGP_VERSION = "AGP_VERSION"
 
     private Constant() {}
 }

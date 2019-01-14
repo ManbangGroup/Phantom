@@ -19,13 +19,15 @@ apply plugin: 'groovy'
 dependencies {
     compile gradleApi()//gradle sdk
     compile localGroovy()//groovy sdk
-    compile 'com.android.tools.build:gradle:2.3.3'
+    compileOnly "com.android.tools.build:gradle:${androidVersion.androidGradlePlugin}"
     compile 'javassist:javassist:3.12.1.GA'
+    // https://mvnrepository.com/artifact/org.jooq/joor-java-6
+    compile group: 'org.jooq', name: 'joor-java-6', version: '0.9.10'
 }
 
 ext {
     POM_ARTIFACT_ID = 'phantom-plugin-gradle'
-    POM_VERSION_NAME = rootProject.ext.PHANTOM_VERSION_NAME
+    POM_VERSION_NAME = phantomVersion.pluginGradle
     POM_DESC = 'phantom plugin gradle plugin'
 }
 

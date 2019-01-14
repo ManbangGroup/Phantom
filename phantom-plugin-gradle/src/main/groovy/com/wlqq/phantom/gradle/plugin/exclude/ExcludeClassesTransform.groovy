@@ -16,42 +16,46 @@
 
 package com.wlqq.phantom.gradle.plugin.exclude
 
-import com.android.build.api.transform.DirectoryInput
-import com.android.build.api.transform.Format
-import com.android.build.api.transform.JarInput
-import com.android.build.api.transform.QualifiedContent
-import com.android.build.api.transform.Transform
-import com.android.build.api.transform.TransformException
-import com.android.build.api.transform.TransformInput
-import com.android.build.api.transform.TransformInvocation
+import com.android.build.api.transform.*
 import com.android.build.gradle.AndroidGradleOptions
 import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.BasePlugin
 import com.android.build.gradle.internal.dsl.PackagingOptions
+import com.android.build.gradle.internal.ide.ArtifactDependencyGraph
+import com.android.build.gradle.internal.ide.ModelBuilder
 import com.android.build.gradle.internal.packaging.ParsedPackagingOptions
 import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.build.gradle.internal.transforms.MergeJavaResourcesTransform
+import com.android.build.gradle.tasks.MergeManifests
+import com.android.build.gradle.tasks.MergeResources
+import com.android.builder.model.Dependencies
+import com.android.builder.model.SyncIssue
+import com.android.ide.common.res2.ResourcePreprocessor
 import com.android.ide.common.res2.ResourceSet
 import com.android.manifmerger.ManifestProvider
 import com.android.utils.FileUtils
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
+import com.wlqq.phantom.gradle.plugin.ComparableVersion
 import com.wlqq.phantom.gradle.plugin.Constant
 import com.wlqq.phantom.gradle.plugin.PhantomPluginConfig
+import com.wlqq.phantom.gradle.plugin.dependency.AarDependenceInfo
+import com.wlqq.phantom.gradle.plugin.dependency.DependenceInfo
+import com.wlqq.phantom.gradle.plugin.dependency.JarDependenceInfo
 import com.wlqq.phantom.gradle.plugin.utils.IOUtils
 import com.wlqq.phantom.gradle.plugin.utils.JarUtils
 import com.wlqq.phantom.gradle.plugin.utils.JarVisitor
+import com.wlqq.phantom.gradle.plugin.utils.Log
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
-import org.w3c.dom.Document
-import org.w3c.dom.Element
-import org.xml.sax.SAXException
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
 
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.parsers.ParserConfigurationException
 import java.lang.reflect.Field
+import java.lang.reflect.Method
+import java.util.function.Consumer
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -60,14 +64,26 @@ class ExcludeClassesTransform extends Transform {
 
     Project project
     PhantomPluginConfig mWlExclude
+    // for agp 2.x
     Set<String> mRelativeLibs
+    // for agp 3.x
+    List<DependenceInfo> mStripDependencies
+    ComparableVersion agpVersion
 
-    public ExcludeClassesTransform(Project project) {
+
+    ExcludeClassesTransform(Project project) {
         this.project = project
+        this.agpVersion = (ComparableVersion) project.extensions.extraProperties[Constant.AGP_VERSION]
         project.afterEvaluate {
             mWlExclude = project.extensions.getByName(Constant.USER_CONFIG)
-            mRelativeLibs = parseRelativeLibs(mWlExclude.excludeLibs)
-            excludeRes()
+            if (agpVersion.greaterThanOrEqualTo(Constant.AGP_3_0)) {
+                mStripDependencies = computeStripDependenceListForAgp3x()
+                mRelativeLibs = new HashSet<>(mStripDependencies.collect { it.jarFile.absolutePath })
+                excludeRes2()
+            } else {
+                mRelativeLibs = parseRelativeLibs(mWlExclude.excludeLibs)
+                excludeRes()
+            }
         }
     }
 
@@ -78,13 +94,19 @@ class ExcludeClassesTransform extends Transform {
 
     @Override
     void transform(TransformInvocation transformInvocation) throws TransformException, InterruptedException, IOException {
+        def tag = 'transform'
+
+        if (!isIncremental()) {
+            transformInvocation.outputProvider.deleteAll()
+        }
+
         String transformsDir = "${project.buildDir.toString()}${File.separator}intermediates${File.separator}transforms${File.separator}${getName()}"
         File tempFile = new File(transformsDir)
         if (tempFile.exists() && tempFile.isDirectory()) {
             FileUtils.deletePath(tempFile)
         }
 
-        String tempClassDir = project.buildDir.toString() + File.separator + "tmp" + File.separator + "tmpClasses";
+        String tempClassDir = project.buildDir.toString() + File.separator + "tmp" + File.separator + "tmpClasses"
         tempFile = new File(tempClassDir)
         if (tempFile.exists() && tempFile.isDirectory()) {
             FileUtils.deletePath(tempFile)
@@ -94,7 +116,8 @@ class ExcludeClassesTransform extends Transform {
 
         List<String> excludeClasses = new ArrayList<>()
 
-        String buildCacheDir = AndroidGradleOptions.getBuildCacheDir(project);
+        String buildCacheDir = getBuildCacheDir()
+        Log.i tag, "build cache dir: ${buildCacheDir}"
 
         Set<String> excludeOtherFile = new HashSet<>()
 
@@ -103,67 +126,110 @@ class ExcludeClassesTransform extends Transform {
              * 遍历输入目录并拷贝到tempClassDir
              */
             input.directoryInputs.each { DirectoryInput directoryInput ->
-                println "Copying ${directoryInput.file.absolutePath} to ${tempClassDir} start"
+                Log.i tag, "Copying ${directoryInput.file.absolutePath} to ${tempClassDir} start"
                 FileUtils.copyDirectory(directoryInput.file, new File(tempClassDir))
-                println "Copying ${directoryInput.file.absolutePath} to ${tempClassDir} end"
+                Log.i tag, "Copying ${directoryInput.file.absolutePath} to ${tempClassDir} end"
             }
 
             /**
              * 遍历输入jar并解压到tempClassDir
              */
-            input.jarInputs.each { JarInput jarInput ->
+            input.jarInputs.eachWithIndex { JarInput jarInput, int idx ->
+
+                def absolutePath = jarInput.file.absolutePath
+                Log.i tag, "jarInput $idx absolutePath: $absolutePath"
+
                 for (PhantomPluginConfig.ExcludeConfig module : mWlExclude.excludeModules) {
-                    if (jarInput.file.absolutePath.indexOf(File.separator + module.name + File.separator) >= 0) {
-                        println "exclude module ${module.name} jarPath is ${jarInput.file.absolutePath}"
-                        String modulePackage = parserPackageName(jarInput.file.getParentFile().absolutePath + File.separator + 'AndroidManifest.xml')
+                    if (absolutePath.indexOf(File.separator + module.name + File.separator) >= 0) {
+                        Log.i tag, "exclude module ${module.name} jarPath is ${absolutePath}"
+                        String modulePackage = parsePackageName(getModuleManifestByJar(jarInput.file))
                         if (null != modulePackage && module.isExcludeRes) {
                             excludeClasses.add(modulePackage + '.R.class')
                         }
                         excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromDir(jarInput.file.getParentFile().absolutePath))
-                        excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromJar(jarInput.file.absolutePath))
+                        excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromJar(absolutePath))
 
-                        writeLibraryJarsToProguardFile([jarInput.file.absolutePath] as Set, mWlExclude.libraryJarsProguardFile, true)
-                        keepModuleClasses(jarInput.file.absolutePath, tempClassDir, module.keepClasses)
-                        return;
+                        writeLibraryJarsToProguardFile([absolutePath] as Set, mWlExclude.libraryJarsProguardFile, true)
+                        keepModuleClasses(absolutePath, tempClassDir, module.keepClasses)
+                        return
                     }
                 }
 
-                if (jarInput.file.absolutePath.startsWith(buildCacheDir)) {
-                    CacheLibInfo libInfo = getCacheFile(buildCacheDir, jarInput.file.absolutePath)
+                //agp 3.x 输入jar不在build-cache目录，删除相关的依赖lib可以根据名字判断。
+                //例如 agp 3.x 输入的jar路径是：/Users/fy/.gradle/caches/transforms-1/files-1.1/support-fragment-28.0.0-rc02.aar/59ce33ef0fec498f1664c7ae026d7518/jars/classes.jar
+                //根据implementation获取的依赖路径是：/Users/fy/.gradle/caches/modules-2/files-2.1/com.android.support/support-fragment/28.0.0-rc02/ddd2d04e216aabc4c9342d172febfa365b171954/support-fragment-28.0.0-rc02.aar
+                //路径中包含support-fragment-28.0.0-rc02.aar则可以删除
+                if (agpVersion.greaterThanOrEqualTo(Constant.AGP_3_0) && null != mStripDependencies) {
+                    for (DependenceInfo dependenceInfo : mStripDependencies) {
+                        def suffix = dependenceInfo.dependenceType == DependenceInfo.DependenceType.AAR ? 'aar' : 'jar'
+                        def filename = "${dependenceInfo.artifact}-${dependenceInfo.version}.${suffix}"
+                        if (absolutePath.contains(filename)) {
+                            Log.i tag, "agp 3.x exclude lib ${filename} libCachePath is ${absolutePath}"
+                            if (dependenceInfo.dependenceType == DependenceInfo.DependenceType.AAR) {
+                                String unzipedDir = absolutePath.substring(0, absolutePath.length() - '/jars/classes.jar'.length())
+                                Log.i tag, 'agp 3.x unZipDir:' + unzipedDir
+                                String packageName = parsePackageName(unzipedDir + File.separator + 'AndroidManifest.xml')
+                                if (null != packageName) {
+                                    excludeClasses.add(packageName + '.R.class')
+                                }
+
+                                excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromDir(unzipedDir))
+                            }
+                            //有的jar中会包含assets等资源，一并排除掉
+                            excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromJar(absolutePath))
+                            return
+                        }
+                    }
+                }
+
+                if (absolutePath.startsWith(buildCacheDir)) {
+                    CacheLibInfo libInfo = getCacheFile(buildCacheDir, absolutePath)
                     PhantomPluginConfig.ExcludeConfig cfg = mWlExclude.excludeLibInfo(libInfo.name)
                     if (null != libInfo
                             && (null != cfg
                             || mRelativeLibs.contains(libInfo.path))) {
-                        println "exclude lib ${libInfo.name} libCachePath is ${jarInput.file.absolutePath}"
+                        Log.i tag, "agp 2.x exclude lib ${libInfo.name} libCachePath is ${absolutePath}"
                         //null == cfg表示是相关联的库，只有指定不删除资源的库才保留R类
                         if (null == cfg || cfg.isExcludeRes) {
                             excludeClasses.add(libInfo.packageName + '.R.class')
                         }
                         excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromDir(libInfo.cachePath))
                         //有的jar中会包含assets等资源，一并排除掉
-                        excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromJar(jarInput.file.absolutePath))
+                        excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromJar(absolutePath))
                         return
                     }
                 }
 
                 for (PhantomPluginConfig.ExcludeConfig excludeJar : mWlExclude.excludeLibs) {
-                    if (jarInput.file.absolutePath.indexOf("${File.separator}${excludeJar.artifactId}-${excludeJar.version}") >= 0
-                            || jarInput.file.absolutePath.indexOf("${File.separator}${excludeJar.artifactId}${File.separator}${excludeJar.version}") >= 0
-                            || mRelativeLibs.contains(jarInput.file.absolutePath)) {
-                        println "exclude lib ${excludeJar.name} libPath is ${jarInput.file.absolutePath}"
-                        parserOtherExcludeFile(excludeOtherFile, jarInput.file.absolutePath)
-                        return;
+                    String jarPath = absolutePath
+                    if (jarPath.indexOf("${File.separator}${excludeJar.artifactId}-${excludeJar.version}") >= 0
+                            || jarPath.indexOf("${File.separator}${excludeJar.artifactId}${File.separator}${excludeJar.version}") >= 0
+                            || mRelativeLibs.contains(jarPath)) {
+                        Log.i tag, "agp old exclude lib ${excludeJar.name} libPath is ${jarPath}"
+                        if (jarPath.contains("${excludeJar.artifactId}-${excludeJar.version}.aar") && jarPath.endsWith("jars${File.separator}classes.jar")) {
+                            //aar
+                            String unzipedDir = jarPath.substring(0, jarPath.length() - '/jars/classes.jar'.length())
+                            Log.i tag, 'agp old unZipDir:' + unzipedDir
+                            String packageName = parsePackageName(unzipedDir + File.separator + 'AndroidManifest.xml')
+                            if (null != packageName) {
+                                excludeClasses.add(packageName + '.R.class')
+                            }
+
+                            excludeOtherFile.addAll(ExcludeFileUtils.getOtherExcludeFromDir(unzipedDir))
+                        }
+                        parseOtherExcludeFile(excludeOtherFile, absolutePath)
+                        return
                     }
                 }
 
-                //其他的jar直接输出到下一个trasnform
+                //其他的jar直接输出到下一个transform
                 String newFileName = "${jarInput.file.name.substring(0, jarInput.file.name.length() - 4)}_${System.currentTimeMillis()}"
                 File otherJar = transformInvocation.outputProvider.getContentLocation(newFileName, TransformManager.CONTENT_JARS, TransformManager.SCOPE_FULL_PROJECT, Format.JAR)
-                println "transform otherJar ${jarInput.file.absolutePath} to ${otherJar.absolutePath} start"
+                Log.i tag, "transform otherJar ${absolutePath} to ${otherJar.absolutePath} start"
                 if (!otherJar.getParentFile().exists()) {
                     otherJar.getParentFile().mkdirs()
                 }
-                JarUtils.transformJar(jarInput.file.absolutePath, otherJar, new JarVisitor() {
+                JarUtils.transformJar(absolutePath, otherJar, new JarVisitor() {
                     @Override
                     boolean visitEntry(ZipEntry entry, ZipInputStream inputJar, ZipOutputStream outputJar) {
                         String name = entry.getName().replace((char) '/', (char) '.')
@@ -175,7 +241,7 @@ class ExcludeClassesTransform extends Transform {
                         return true
                     }
                 })
-                println "transform otherJar ${jarInput.file.absolutePath} to ${otherJar.absolutePath} end"
+                Log.i tag, "transform otherJar ${absolutePath} to ${otherJar.absolutePath} end"
             }
         }
         /**
@@ -184,9 +250,9 @@ class ExcludeClassesTransform extends Transform {
         excludeClasses.addAll(mWlExclude.excludeClasses)
         excludeClasses.each { String classes ->
             StringBuffer path = new StringBuffer(classes)
-            int endIndex = path.size() - 1;
+            int endIndex = path.size() - 1
             if (classes.endsWith(".class")) {
-                endIndex = endIndex - 6;
+                endIndex = endIndex - 6
             }
             for (int i = 0; i < endIndex; i++) {
                 if (path.charAt(i) == (char) '.') {
@@ -194,7 +260,7 @@ class ExcludeClassesTransform extends Transform {
                 }
             }
 
-            println("delete classes: ${path.toString()}")
+            Log.i tag, "delete classes: ${path.toString()}"
             File deleteFile = new File(tempClassDir + File.separator + path.toString())
             FileUtils.deletePath(deleteFile)
             //delete R$xxx.class
@@ -202,22 +268,50 @@ class ExcludeClassesTransform extends Transform {
                 File[] rFiles = deleteFile.getParentFile().listFiles(new FileFilter() {
                     @Override
                     boolean accept(File file) {
-                        return file.getName().startsWith("R\$");
+                        return file.getName().startsWith("R\$")
                     }
                 })
                 for (File rFile : rFiles) {
-                    println("delete classes: ${rFile.absolutePath}")
+                    Log.i tag, "delete classes: ${rFile.absolutePath}"
                     FileUtils.deletePath(rFile)
                 }
             }
         }
 
         File dest = transformInvocation.outputProvider.getContentLocation("excluded", TransformManager.CONTENT_JARS, TransformManager.SCOPE_FULL_PROJECT, Format.JAR)
-        println "makeJar ${tempClassDir} to ${dest.absolutePath}"
+        Log.i tag, "makeJar ${tempClassDir} to ${dest.absolutePath}"
         JarUtils.makeJar(tempClassDir, dest.absolutePath)
 
-        excludeSoAndRes(excludeOtherFile)
+        if (agpVersion.greaterThanOrEqualTo(Constant.AGP_3_0)) {
+            excludeSoAndRes2(excludeOtherFile)
+        } else {
+            excludeSoAndRes(excludeOtherFile)
+        }
+    }
 
+    /**
+     * 根据输入的 module jar 获取模块的 AndroidManifest.xml 文件路径，可能为 <code>null</code>
+     * @param jarPath
+     * @return 模块的 AndroidManifest.xml 文件路径
+     */
+    static String getModuleManifestByJar(File jarFile) {
+        String manifestPath = jarFile.getParentFile().absolutePath + File.separator + 'AndroidManifest.xml'
+        if (new File(manifestPath).exists()) {
+            return manifestPath
+        }
+
+        manifestPath = jarFile.getParentFile().getParentFile().getParentFile().absolutePath + "${File.separator}manifests${File.separator}full${File.separator}debug${File.separator}AndroidManifest.xml"
+        if (new File(manifestPath).exists()) {
+            return manifestPath
+        }
+
+        manifestPath = jarFile.getParentFile().getParentFile().getParentFile().absolutePath + "${File.separator}manifests${File.separator}full${File.separator}release${File.separator}AndroidManifest.xml"
+        if (new File(manifestPath).exists()) {
+            return manifestPath
+        }
+
+        Log.e 'getModuleManifestByJar', "exclude module not find AndroidManifest.xml for ${jarFile.absolutePath}"
+        return null
     }
 
     /**
@@ -232,10 +326,10 @@ class ExcludeClassesTransform extends Transform {
         if (!jarPath.endsWith("${File.separator}default${File.separator}classes.jar") || keepClasses.size() == 0) {
             return
         }
-        ZipInputStream zis = null;
-        BufferedOutputStream bos = null;
+        ZipInputStream zis = null
+        BufferedOutputStream bos = null
         try {
-            zis = new ZipInputStream(new FileInputStream(jarPath));
+            zis = new ZipInputStream(new FileInputStream(jarPath))
             ZipEntry entry = null
             HashSet<String> proguardCfg = new HashSet<>()
             while ((entry = zis.getNextEntry()) != null) {
@@ -258,8 +352,8 @@ class ExcludeClassesTransform extends Transform {
                             target.createNewFile()
                         }
                         // 写入文件
-                        bos = new BufferedOutputStream(new FileOutputStream(target));
-                        int read = 0;
+                        bos = new BufferedOutputStream(new FileOutputStream(target))
+                        int read = 0
                         byte[] buffer = new byte[1024 * 50]
                         while ((read = zis.read(buffer, 0, buffer.length)) != -1) {
                             bos.write(buffer, 0, read)
@@ -280,6 +374,7 @@ class ExcludeClassesTransform extends Transform {
     }
 
     void excludeRes() {
+        def tag = 'excludeRes'
         Set<String> excludeResKeys = new HashSet<>()
         def wlExclude = mWlExclude
         for (PhantomPluginConfig.ExcludeConfig config : wlExclude.excludeModules) {
@@ -303,9 +398,11 @@ class ExcludeClassesTransform extends Transform {
             if (it.name == 'mergeDebugResources' || it.name == 'mergeReleaseResources') {
                 it.doFirst {
                     List<ResourceSet> resList = it.getInputResourceSets()
-                    println "origin ResourceSets:" + resList
+
+                    Log.i tag, "origin ResourceSets: $resList"
+                    
                     List<ResourceSet> removedRes = new ArrayList<ResourceSet>()
-                    String buildCachePath = AndroidGradleOptions.getBuildCacheDir(project)
+                    String buildCachePath = getBuildCacheDir()
                     for (String resKey : excludeResKeys) {
                         for (ResourceSet res : resList) {
                             if (res.sourceFiles[0].absolutePath.startsWith(resKey)) {
@@ -337,11 +434,11 @@ class ExcludeClassesTransform extends Transform {
 
                     for (ResourceSet deleteItem : removedRes) {
                         resList.remove(deleteItem)
-                        println "delete ResourcesSet:" + deleteItem
+                        Log.i tag, "delete ResourcesSet: $deleteItem"
                     }
 
                     it.setInputResourceSets(resList)
-                    println "new ResourceSets:" + it.getInputResourceSets()
+                    Log.i tag, "new ResourceSets: $resList"
                 }
             }
 
@@ -350,6 +447,94 @@ class ExcludeClassesTransform extends Transform {
             }
         }
     }
+
+    void excludeRes2() {
+        Set<String> excludeResKeys = new HashSet<>()
+        PhantomPluginConfig wlExclude = mWlExclude
+        for (PhantomPluginConfig.ExcludeConfig config : wlExclude.excludeModules) {
+            if (!config.isExcludeRes) {
+                continue
+            }
+            excludeResKeys.add(project.rootProject.rootDir.absolutePath + File.separator + config.name)
+        }
+
+        for (PhantomPluginConfig.ExcludeConfig config : wlExclude.excludeLibs) {
+            if (!config.isExcludeRes) {
+                continue
+            }
+            excludeResKeys.add("${config.artifactId}-${config.version}")
+            excludeResKeys.add("${config.artifactId}${File.separator}${config.version}")
+
+        }
+
+
+        project.tasks.each {
+            if (it.name == 'mergeDebugResources' || it.name == 'mergeReleaseResources') {
+                it.doFirst {
+                    List<ResourceSet> resList = null
+                    Field fieldPi = MergeResources.class.getDeclaredField("processedInputs")
+                    fieldPi.setAccessible(true)
+                    Method methodProcessor = MergeResources.class.getDeclaredMethod("getPreprocessor")
+                    methodProcessor.setAccessible(true)
+                    Method methodResourceSet = MergeResources.class.getDeclaredMethod("getConfiguredResourceSets", ResourcePreprocessor.class)
+                    methodResourceSet.setAccessible(true)
+                    ResourcePreprocessor processor = (ResourcePreprocessor) methodProcessor.invoke(it)
+                    resList = (List<ResourceSet>) methodResourceSet.invoke(it, processor)
+
+                    Log.i 'excludeRes2', "origin ResourceSets: $resList"
+                    List<ResourceSet> removedRes = new ArrayList<ResourceSet>()
+                    for (String resKey : excludeResKeys) {
+                        for (ResourceSet res : resList) {
+                            if (res.sourceFiles[0].absolutePath.startsWith(resKey)) {
+                                removedRes.add(res)
+                                break
+                            }
+
+                            boolean find = false
+
+                            if (null != mStripDependencies) {
+                                for (DependenceInfo dependenceInfo : mStripDependencies) {
+                                    def suffix = dependenceInfo.dependenceType == DependenceInfo.DependenceType.AAR ? 'aar' : 'jar'
+                                    def filename = "${dependenceInfo.artifact}-${dependenceInfo.version}.${suffix}"
+                                    if (res.sourceFiles[0].absolutePath.contains(filename)) {
+                                        find = true
+                                        removedRes.add(res)
+                                        break
+                                    }
+                                }
+
+                                if (find) {
+                                    continue
+                                }
+                            }
+
+
+                            if (res.sourceFiles[0].absolutePath.indexOf(resKey) > 0) {
+                                //exploded-aar
+                                removedRes.add(res)
+                                break
+
+                            }
+                        }
+                    }
+
+                    for (ResourceSet deleteItem : removedRes) {
+                        resList.remove(deleteItem)
+                        Log.i 'excludeRes2', "delete ResourcesSet: $deleteItem"
+                    }
+
+                    fieldPi.set(it, resList)
+
+                    Log.i 'excludeRes2', "new ResourceSets: $resList"
+                }
+            }
+
+            if (it.getName() == 'processDebugManifest' || it.getName() == 'processReleaseManifest') {
+                excludeAndroidManifests2(it, wlExclude)
+            }
+        }
+    }
+
     /**
      * mergeJniLibs和mergeJavaRes两个transform负责合并资源文件和so库，如果要排除资源文件和so库只需要修改这两个
      * transform的packagingOptions属性
@@ -357,18 +542,19 @@ class ExcludeClassesTransform extends Transform {
      * @param excludeOthers 要排除的资源和so
      */
     void excludeSoAndRes(Set<String> excludeOthers) {
+        def tag = 'excludeSoAndRes'
         if (0 == excludeOthers.size()) {
             return
         }
 
-        println "excludeSoAndRes: " + excludeOthers
+        Log.i tag, "excludeSoAndRes: $excludeOthers"
 
         ((BasePlugin) project.plugins.findPlugin(AppPlugin)).variantManager.variantDataList.each {
             TransformManager transformManager = it.getScope().getTransformManager()
             Field field = TransformManager.getDeclaredField('transforms')
             field.setAccessible(true)
             List<Transform> transformList = field.get(transformManager)
-            for (com.android.build.api.transform.Transform trs : transformList) {
+            for (Transform trs : transformList) {
                 if (trs.name.equalsIgnoreCase('mergeJniLibs') || trs.name.equalsIgnoreCase('mergeJavaRes')) {
                     MergeJavaResourcesTransform mjr = (MergeJavaResourcesTransform) trs
                     Field poField = MergeJavaResourcesTransform.class.getDeclaredField('packagingOptions')
@@ -389,7 +575,21 @@ class ExcludeClassesTransform extends Transform {
         }
     }
 
-    private void parserOtherExcludeFile(Set<String> excludes, String filePath) {
+    void excludeSoAndRes2(Set<String> excludeOthers) {
+        def tag = 'excludeSoAndRes2'
+        if (0 == excludeOthers.size()) {
+            return
+        }
+
+        Log.i tag, "excludeSoAndRes2: $excludeOthers"
+        for (String excludeFile : excludeOthers) {
+            project.android.packagingOptions.exclude(excludeFile)
+        }
+
+    }
+
+
+    private static void parseOtherExcludeFile(Set<String> excludes, String filePath) {
         if (filePath.endsWith('.aar')) {
             excludes.addAll(ExcludeFileUtils.getOtherExcludeFromAar(filePath))
         } else if (filePath.endsWith('.jar')) {
@@ -422,7 +622,7 @@ class ExcludeClassesTransform extends Transform {
      * @param filePath cache目录中库的绝对路径
      * @return 返回库的原始名字，例如support-v4-21.1.1
      */
-    private CacheLibInfo getCacheFile(String cachePath, String filePath) {
+    private static CacheLibInfo getCacheFile(String cachePath, String filePath) {
         int index = filePath.indexOf(File.separator, cachePath.length() + 1)
         String rootPath = filePath.substring(0, index + 1)
         File inputsFile = new File(rootPath + 'inputs')
@@ -446,7 +646,7 @@ class ExcludeClassesTransform extends Transform {
             libInfo.path = line.substring(pre.length())
             libInfo.name = line.substring(line.lastIndexOf(File.separator) + 1, line.length() - 4)
             libInfo.cachePath = rootPath + 'output'
-            libInfo.packageName = parserPackageName(libInfo.cachePath + File.separator + 'AndroidManifest.xml')
+            libInfo.packageName = parsePackageName(libInfo.cachePath + File.separator + 'AndroidManifest.xml')
             return libInfo
         }
 
@@ -456,33 +656,26 @@ class ExcludeClassesTransform extends Transform {
     /**
      * aar库里面存在AndroidManifest文件,在编译时会生成对应的R.class，这里获取AndroidManifest里面的
      * package, 方便删除对应的R.class文件
+     *
      * @param path AndroidManifest的路径
      * @return AndroidManifest的package属性值
      */
-    private String parserPackageName(String path) {
+    private static String parsePackageName(String path) {
+        if (path == null) {
+            return null
+        }
+
         File manifestFile = new File(path)
         if (!manifestFile.exists()) {
             return null
         }
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance()
-            DocumentBuilder db = dbf.newDocumentBuilder()
-            Document doc = db.parse(path)
-            Element manifestNode = doc.getDocumentElement()
-            return manifestNode.getAttribute('package')
-        } catch (ParserConfigurationException pce) {
-            pce.printStackTrace();
-        } catch (SAXException se) {
-            se.printStackTrace();
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-        return null
+        def xmlManifest = new XmlParser().parse(manifestFile)
+        return xmlManifest.@package
     }
 
     /**
-     * 获取一个库的依赖库，比如support-v4在版本25.3.1被拆分成多个库，在排除support-v4的时候应该将它的依赖库一起删除
+     * 获取一个库的依赖库，比如support-v4在版本25.3.1被拆分成多个库，在排除support-v4的时候应该将它的依赖库一起删除，在 AGP 2.x 有效
+     *
      * @param excludeLibs ExcludeClasses的excludeLibs值
      * @return ExcludeClasses的excludeLibs的依赖库
      */
@@ -518,7 +711,9 @@ class ExcludeClassesTransform extends Transform {
      * @param proguardFile 需要写入 -libraryjars 配置的 proguard 文件
      */
     private void writeLibraryJarsToProguardFile(Set<String> libraries, File proguardFile, boolean append = false) {
-        printf("[writeLibraryJarsToProguardFile] E %s, append: %s\n", proguardFile, append)
+        def tag = 'writeLibraryJarsToProguardFile'
+        
+        Log.i tag, "E $proguardFile, append: $append"
 
         def writeLibraryJars = { writer ->
             libraries.each {
@@ -536,7 +731,7 @@ class ExcludeClassesTransform extends Transform {
             proguardFile.withWriter('utf-8', writeLibraryJars)
         }
 
-        printf("[writeLibraryJarsToProguardFile] X %s, append: %s\n", proguardFile, append)
+        Log.i tag, "X $proguardFile, append: $append"
     }
 
     /**
@@ -545,7 +740,9 @@ class ExcludeClassesTransform extends Transform {
      * @param proguardFile需要写入 -keep class 配置的 proguard 文件
      */
     private void writeKeepClassesToProguardFile(Set<String> classes, File proguardFile) {
-        printf("[writeKeepClassesToProguardFile] E %s", proguardFile)
+        def tag = 'writeKeepClassesToProguardFile'
+        
+        Log.i tag, "E $proguardFile"
 
         def writeClasses = { writer ->
             classes.each {
@@ -559,7 +756,7 @@ class ExcludeClassesTransform extends Transform {
 
         proguardFile.withWriterAppend('utf-8', writeClasses)
 
-        printf("[writeKeepClassesToProguardFile] X %s", proguardFile)
+        Log.i tag, "X $proguardFile"
     }
 
     /**
@@ -575,14 +772,14 @@ class ExcludeClassesTransform extends Transform {
      * 第3方库coordinates类似com.android.support:support-v4:25.3.1@aar
      * @param config
      */
-    private void excludeAndroidManifests(Task task, PhantomPluginConfig configs) {
+    private static void excludeAndroidManifests(Task task, PhantomPluginConfig configs) {
         List<ManifestProvider> providers = task.getProviders()
         List<ManifestProvider> removedProviders = new ArrayList<>()
 
         for (int i = 0; i < providers.size(); i++) {
             def provider = providers.get(i)
             boolean find = false
-            String coordinates = provider.coordinates;
+            String coordinates = provider.coordinates
             for (PhantomPluginConfig.ExcludeConfig moduleCfg : configs.excludeModules) {
                 //如果依赖是 compile project(':UIWidget:SwipeMenuListView')
                 //则coordinates的值类似newnearby.UIWidget:SwipeMenuListView:unspecified@aar
@@ -591,7 +788,7 @@ class ExcludeClassesTransform extends Transform {
                 if (coordinates.contains(".${moduleCfg.name}:")
                         || coordinates.contains(":${moduleCfg.name}:")) {
                     removedProviders.add(provider)
-                    println "exclude module AndroidManifest.xml for ${moduleCfg.name}"
+                    Log.i 'excludeAndroidManifests', "exclude module AndroidManifest.xml for ${moduleCfg.name}"
                     find = true
                     break
                 }
@@ -604,7 +801,7 @@ class ExcludeClassesTransform extends Transform {
             for (PhantomPluginConfig.ExcludeConfig libCfg : configs.excludeLibs) {
                 if (coordinates.startsWith("${libCfg.name}@")) {
                     removedProviders.add(provider)
-                    println "exclude lib AndroidManifest.xml for ${libCfg.name}"
+                    Log.i 'excludeAndroidManifests', "exclude lib AndroidManifest.xml for ${libCfg.name}"
                     break
                 }
             }
@@ -613,6 +810,112 @@ class ExcludeClassesTransform extends Transform {
         providers.removeAll(removedProviders)
         task.setProviders(providers)
     }
+
+    /**
+     * 4.x的gradle合并manifests时输入的AndroidManifest.xml格式为：
+     * module格式：Test/module1/build/intermediates/manifests/full/release/AndroidManifest.xml
+     * 依赖的aar格式：.gradle/caches/transforms-1/files-1.1/appcompat-v7-28.0.0-rc02.aar/c018f2ccc4e306e4a83eeb43e732e976/AndroidManifest.xml
+     * @param task
+     * @param config
+     */
+    private static void excludeAndroidManifests2(Task task, PhantomPluginConfig config) {
+        def tag = 'excludeAndroidManifests2'
+        Log.i(tag, 'method E')
+        MergeManifests manifestsTask = (MergeManifests) task
+        Field mf = MergeManifests.class.getDeclaredField("manifests")
+        mf.setAccessible(true)
+        Set<ResolvedArtifactResult> artifacts = ((ArtifactCollection) mf.get(manifestsTask)).getArtifacts()
+
+        Iterator<ResolvedArtifactResult> iterator = artifacts.iterator()
+        while (iterator.hasNext()) {
+            ResolvedArtifactResult manifest = iterator.next()
+            boolean find = false
+            for (PhantomPluginConfig.ExcludeConfig moduleCfg : config.excludeModules) {
+                if (manifest.file.absolutePath.contains("${moduleCfg.name}${File.separator}build${File.separator}")) {
+                    iterator.remove()
+                    find = true
+                    Log.i(tag, "exclude module manifest: ${manifest.file.absolutePath}")
+                    break
+                }
+            }
+
+            if (find) {
+                continue
+            }
+
+            for (PhantomPluginConfig.ExcludeConfig libCfg : config.excludeLibs) {
+                if (libCfg.name == manifest.identifier.componentId.toString()) {
+                    iterator.remove()
+                    Log.i(tag,  "exclude lib manifest: ${manifest.file.absolutePath}")
+                }
+            }
+        }
+        Log.i(tag, 'method X')
+    }
+
+    // only call this method for agp version 3.x
+    private List<DependenceInfo> computeStripDependenceListForAgp3x() {
+        def logtag = 'computeStripDependenceListForAgp3x'
+        def scope = project.android.applicationVariants[0].variantData.scope
+
+        List<DependenceInfo> stripDependencies = new ArrayList<>()
+        Dependencies dependencies
+
+        Consumer consumer = new Consumer<SyncIssue>() {
+            @Override
+            void accept(SyncIssue syncIssue) {
+                Log.i 'computeStripDependenceListForAgp3x', "Error: ${syncIssue}"
+            }
+        }
+
+        if (agpVersion.greaterThanOrEqualTo(Constant.AGP_3_1)) {
+            ImmutableMap<String, String> buildMapping = ModelBuilder.computeBuildMapping(project.gradle)
+            dependencies = new ArtifactDependencyGraph().createDependencies(scope, false, buildMapping, consumer)
+        } else {
+            // AGP 3.0.x
+            dependencies = new ArtifactDependencyGraph().createDependencies(scope, false, consumer)
+        }
+
+        def excludeLibs = mWlExclude.excludeLibs.collect { "${it.groupId}:${it.artifactId}" }
+
+        dependencies.libraries.each {
+            def mavenCoordinates = it.resolvedCoordinates
+            if (excludeLibs.contains("${mavenCoordinates.groupId}:${mavenCoordinates.artifactId}")) {
+                Log.i logtag, "Need strip aar: ${mavenCoordinates.groupId}:${mavenCoordinates.artifactId}:${mavenCoordinates.version}"
+                stripDependencies.add(
+                        new AarDependenceInfo(
+                                mavenCoordinates.groupId,
+                                mavenCoordinates.artifactId,
+                                mavenCoordinates.version,
+                                it))
+
+            }
+
+        }
+        dependencies.javaLibraries.each {
+            def mavenCoordinates = it.resolvedCoordinates
+            if (excludeLibs.contains("${mavenCoordinates.groupId}:${mavenCoordinates.artifactId}")) {
+                Log.i logtag, "Need strip jar: ${mavenCoordinates.groupId}:${mavenCoordinates.artifactId}:${mavenCoordinates.version}"
+                stripDependencies.add(
+                        new JarDependenceInfo(
+                                mavenCoordinates.groupId,
+                                mavenCoordinates.artifactId,
+                                mavenCoordinates.version,
+                                it))
+            }
+        }
+
+        return stripDependencies
+    }
+
+    private String getBuildCacheDir() {
+        if (agpVersion.greaterThanOrEqualTo(Constant.AGP_3_0)) {
+            return project.android.applicationVariants[0].variantData.scope.globalScope.buildCache
+        } else {
+            return AndroidGradleOptions.getBuildCacheDir(project)
+        }
+    }
+
 
     static class CacheLibInfo {
         //库的原始路径

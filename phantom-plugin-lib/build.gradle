@@ -17,7 +17,6 @@
 apply plugin: 'java'
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     compileOnly 'com.google.android:android:4.+'
 }
 
@@ -26,7 +25,7 @@ targetCompatibility = "1.7"
 
 ext {
     POM_ARTIFACT_ID = 'phantom-plugin-lib'
-    POM_VERSION_NAME = rootProject.ext.PHANTOM_VERSION_NAME
+    POM_VERSION_NAME = phantomVersion.pluginLib
     POM_DESC = 'phantom plugin library'
 }
 

@@ -17,13 +17,13 @@ apply plugin: 'com.android.library'
  */
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
+    compileSdkVersion androidVersion.compilesdk
+    buildToolsVersion androidVersion.buildTools
 
     defaultConfig {
-        minSdkVersion MIN_SDK_VERSION
-        versionCode rootProject.ext.PHANTOM_VERSION_CODE
-        versionName rootProject.ext.PHANTOM_VERSION_NAME
+        minSdkVersion androidVersion.minSdk
+        versionName phantomVersion.hostLib
+        versionCode phantomVersion.hostLibInt
 
         consumerProguardFiles 'consumer-proguard-rules.pro'
     }
@@ -36,12 +36,12 @@ android {
 
     buildTypes {
         debug {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -55,12 +55,12 @@ android {
 }
 
 dependencies {
-    testCompile "junit:junit:$JUNIT_VERSION"
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
+    testImplementation "junit:junit:${testVersion.junit}"
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "com.android.support:support-v4:${androidVersion.supportLib}"
 
-    compile "com.wlqq.phantom:maven-version:1.1.0"
-    compile "com.wlqq.phantom:phantom-communication-lib:${rootProject.ext.PHANTOM_VERSION_NAME}"
+    implementation "com.wlqq.phantom:maven-version:1.1.0"
+    implementation "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
 }
 
 ext {

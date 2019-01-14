@@ -18,13 +18,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.wlqq.phantom.plugin'
 
 android {
-    compileSdkVersion COMPILE_SDK_VERSION
-    buildToolsVersion BUILD_TOOLS_VERSION
+    compileSdkVersion androidVersion.compileSdk
+    buildToolsVersion androidVersion.buildTools
 
     defaultConfig {
         applicationId "com.wlqq.phantom.plugin.view"
-        minSdkVersion MIN_SDK_VERSION
-        targetSdkVersion TARGET_SDK_VERSION
+        minSdkVersion androidVersion.minSdk
+        targetSdkVersion androidVersion.targetSdk
         versionCode 10000
         versionName "1.0.0"
     }
@@ -44,28 +44,23 @@ android {
     }
 
     applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            output.outputFile = new File(output.outputFile.parent,
-                    "${variant.applicationId}_${variant.versionName}.apk")
-
-            if (output.zipAlign != null) {
-                output.zipAlign.doLast {
-                    output.zipAlign.inputFile.delete()
-                }
-            }
+        variant.outputs.all { output ->
+            outputFileName = "${variant.applicationId}_${variant.versionName}.apk"
         }
     }
 }
 
 dependencies {
-    provided 'com.wlqq.phantom:phantom-communication-lib:3.0.0'
-    provided 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
+    compileOnly "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
+    compileOnly "com.wlqq.phantom:phantom-plugin-lib:${phantomVersion.pluginLib}"
 
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
-    compile 'io.github.shaobin0604:awesomelog:1.0.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    testCompile 'junit:junit:4.12'
+    implementation "com.android.support:support-v4:${androidVersion.supportLib}"
+
+    implementation 'io.github.shaobin0604:awesomelog:1.0.1'
+
+    testImplementation 'junit:junit:4.12'
 }
 
 def deletePluginInHost() {
@@ -83,10 +78,10 @@ def deletePluginInHost() {
     }
 }
 
-def copyPluginToHost() {
+def copyPluginToHost(String dir) {
     println "copy build plugin to app assets..."
     copy {
-        from(buildDir.absolutePath + '/outputs/apk/') {
+        from(buildDir.absolutePath + '/outputs/apk/' + dir) {
             include('*.apk')
         }
 
@@ -97,19 +92,47 @@ def copyPluginToHost() {
 afterEvaluate { project ->
     project.tasks.assembleDebug.doLast {
         deletePluginInHost()
-        copyPluginToHost()
+        copyPluginToHost('debug')
     }
 
     project.tasks.assembleRelease.doLast {
         deletePluginInHost()
-        copyPluginToHost()
+        copyPluginToHost('release')
     }
 }
 
 phantomPluginConfig {
-    /*------------------------------ 剔除公共库配置 BEGIN ----------------------------*/
-    excludeLib "com.android.support:support-v4:${ANDROID_SUPPORT_LIB_VERSION}"
-    /*------------------------------ 剔除公共库配置  END  ----------------------------*/
+    /*------------------------------ 剔除 support-v4 及其依赖的库 BEGIN ----------------------------*/
+    excludeLib "com.android.support:support-v4:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-core-ui:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-compat:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-media-compat:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-core-utils:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-fragment:${androidVersion.supportLib}"
+    excludeLib "com.android.support:support-annotations:${androidVersion.supportLib}"
+    excludeLib "com.android.support:cursoradapter:${androidVersion.supportLib}"
+    excludeLib "com.android.support:interpolator:${androidVersion.supportLib}"
+    excludeLib "com.android.support:versionedparcelable:${androidVersion.supportLib}"
+    excludeLib "com.android.support:documentfile:${androidVersion.supportLib}"
+    excludeLib "com.android.support:customview:${androidVersion.supportLib}"
+    excludeLib "com.android.support:slidingpanelayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:swiperefreshlayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:drawerlayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:coordinatorlayout:${androidVersion.supportLib}"
+    excludeLib "com.android.support:loader:${androidVersion.supportLib}"
+    excludeLib "com.android.support:viewpager:${androidVersion.supportLib}"
+    excludeLib "com.android.support:collections:${androidVersion.supportLib}"
+    excludeLib "com.android.support:asynclayoutinflater:${androidVersion.supportLib}"
+    excludeLib "com.android.support:print:${androidVersion.supportLib}"
+    excludeLib "com.android.support:localbroadcastmanager:${androidVersion.supportLib}"
+
+    excludeLib "android.arch.lifecycle:viewmodel:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:runtime:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:common:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:livedata:${androidVersion.archLib}"
+    excludeLib "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
+    excludeLib "android.arch.core:common:${androidVersion.archLib}"
+    /*------------------------------ 删除 support-v4 及其依赖的库  END  ----------------------------*/
 
     /*------------------------------ 混淆配置 BEGIN ------------------------------*/
     libraryJarsProguardFile file('proguard-phantom.pro')

@@ -21,8 +21,7 @@ targetCompatibility = JavaVersion.VERSION_1_7
 
 dependencies {
     compileOnly 'com.google.android:android:4.+'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 
 tasks.withType(JavaCompile) {
@@ -31,7 +30,7 @@ tasks.withType(JavaCompile) {
 
 ext {
     POM_ARTIFACT_ID = 'phantom-communication-lib'
-    POM_VERSION_NAME = rootProject.ext.PHANTOM_VERSION_NAME
+    POM_VERSION_NAME = phantomVersion.communicationLib
     POM_DESC = 'phantom communication library'
 }
 

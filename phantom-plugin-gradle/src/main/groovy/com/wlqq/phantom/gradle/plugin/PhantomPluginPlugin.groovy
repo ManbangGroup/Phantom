@@ -22,6 +22,7 @@ import com.wlqq.phantom.gradle.plugin.debugger.PhantomDebugger
 import com.wlqq.phantom.gradle.plugin.dependency.ProvidedDependenciesFileGenerator
 import com.wlqq.phantom.gradle.plugin.exclude.ExcludeClassesTransform
 import com.wlqq.phantom.gradle.plugin.replace.ReplaceSuperTransform
+import com.wlqq.phantom.gradle.plugin.utils.Utils
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -42,6 +43,10 @@ class PhantomPluginPlugin implements Plugin<Project> {
 
             def android = extensions.getByType(AppExtension)
 
+            def version = new ComparableVersion(Utils.getAgpVersion())
+            println "${TAG} Your Gradle Android Plugin version is: ${version}"
+            project.extensions.extraProperties[Constant.AGP_VERSION] = version
+
             android.applicationVariants.all { variant ->
                 def variantData = variant.variantData
                 def scope = variantData.scope
@@ -56,7 +61,7 @@ class PhantomPluginPlugin implements Plugin<Project> {
                 def mergeAssetsTask = project.tasks.getByName(mergeAssetsTaskName)
                 if (mergeAssetsTask) {
                     generateCompileDependenciesTask.doLast {
-                        new ProvidedDependenciesFileGenerator(project, mergeAssetsTask.outputDir, 'provided_dependencies_v2.txt').generateFile()
+                        new ProvidedDependenciesFileGenerator(project, variant, mergeAssetsTask.outputDir, 'provided_dependencies_v2.txt').generateFile()
                     }
 
                     generateCompileDependenciesTask.dependsOn mergeAssetsTask

@@ -64,7 +64,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 break;
             case R.id.btn_notification:
                 NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-                builder.setSmallIcon(R.mipmap.ic_launcher_round);
+                builder.setSmallIcon(getHostLauncherIconId());
                 builder.setAutoCancel(true);
                 builder.setContentInfo("ContentInfo")
                         .setContentText("ContentText")
@@ -105,6 +105,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             default:
                 break;
         }
+    }
+
+    private int getHostLauncherIconId() {
+        return PhantomUtils.getHostContext(this).getResources().getIdentifier("ic_launcher", "mipmap",
+                "com.wlqq.phantom.sample");
     }
 
     private String getHostApplicationId() {

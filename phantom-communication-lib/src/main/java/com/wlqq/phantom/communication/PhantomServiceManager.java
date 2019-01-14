@@ -27,43 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * <p>
- * 管理插件或宿主提供给其他插件/宿主调用的功能接口。
- * <p>
- * 本类提供功能模块的注册、卸载、查询和获取功能。
- * <p>
- * 为了方便管理，注册 {@link #registerService(String, String, Object)} 功能模块的时候必须指定模块所属类别。<br/>
- * 例如，同一个插件提供多个功能模块，他们应该属于同一类别，在插件被卸载的时候，该插件注册的功能模块也应该被卸载。<br/>
- * 被注册的功能模块需要用 {@link RemoteMethod}注解来标记提供供给外部调用的方法使用。例如：
- * <pre>{@code
- * public class PluginService {
- *     @RemoteMethod(name="pluginMessage")
- *     public String pluginMsg(String back){
- *         return "from plugin " + back;
- *     }
- * }}
- * </pre>
- * <p>
- * <p>
- * <p>
- * <code>name="pluginMessage"</code> 表示外部调用 <code>pluginMsg</code> 方法时使用的名称，例如：
- * <pre>{@code
- * IService service = PhantomServiceManager.getService("plugin1");
- * String message = (String)service.call("pluginMessage", "hi");
- * }
- * </pre>
- * 除了使用 <code>IService</code> 的 <code>call</code> 方法来调用功能模块的方法外还可以将 <code>service</code> 转换成自定义接口来调用，
- * 调用端首先需要自定义一个接口，接口中的方法，就是要调用的模块的方法，例如：
- * <pre>{@code
- * public interface PluginService {
- *     //接口方法声明与实现类中的注解名字一样
- *     public String pluginMessage(String back);
- * }
- *
- * PluginService ps = PhantomServiceManager.asInterface(service, PluginService.class);
- * String message = ps.pluginMessage("hi");
- * }
- * </pre>
+ * 管理插件或宿主提供给其他插件/宿主调用的功能接口，提供功能模块的注册、卸载、查询和获取功能。
  */
 public class PhantomServiceManager {
 
@@ -82,9 +46,11 @@ public class PhantomServiceManager {
     /**
      * 初始化 {@link PhantomServiceManager}，<b>必须</b>在调用该类其他方法之前调用该方法
      *
-     * @param hostPackage     宿主包名
-     * @param hostVersionName 宿主版本名
-     * @param hostVersionCode 宿主版本号
+     * @param hostPackage        宿主包名
+     * @param hostVersionName    宿主版本名
+     * @param hostVersionCode    宿主版本号
+     * @param phantomVersionName Phantom 版本名
+     * @param phantomVersionCode Phantom 版本号
      */
     public static synchronized void init(String hostPackage,
             String hostVersionName,
@@ -331,6 +297,7 @@ public class PhantomServiceManager {
     /**
      * 根据名字获取功能模块，返回找到的第一个名字为 name 的功能模块，并转换为 type 参数指定的接口类型，否则返回 null
      *
+     * @param <T>  interface 类型
      * @param name 服务名字格式 packageName/name，如果参数 name 中省去了 packageName，则被认为是查找宿主中的服务 sHostPackage/name
      * @param type 返回的对象类型， type 为必须为一个 interface
      * @return 成功返回 type 的一个对象，否则返回 null
@@ -364,6 +331,7 @@ public class PhantomServiceManager {
     /**
      * 将功能模块 service 转换成自定义接口，方便调用。
      *
+     * @param <T>     interface 类型
      * @param service 需要转换的功能模块
      * @param type    自定义接口
      * @return 自定义接口的实现类

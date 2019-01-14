@@ -14,35 +14,39 @@
  * limitations under the License.
  */
 
-package com.wlqq.phantom.gradle.host
+package com.wlqq.phantom.gradle.host;
 
 
 class Constant {
     /**
      * 版本号
      */
-    def static final VER = "3.0.0"
+    private static final String VER = "3.1.0";
 
     /**
      * 打印信息时候的前缀
      */
-    def static final TAG = "[ phantom-host-v${VER} ]"
+    static final String TAG = "[ phantom-host-v" + VER + " ]";
 
     /**
      * Task 组
      */
-    def static final TASKS_GROUP = "phantom-plugin"
+    static final String TASKS_GROUP = "phantom-plugin";
 
     /**
      * Task 前缀
      */
-    def static final TASKS_PREFIX = "ph"
+    private static final String TASKS_PREFIX = "ph";
 
     /**
      * Generate Task
      */
-    def static final TASK_GENERATE = TASKS_PREFIX + "Generate"
+    static final String TASK_GENERATE = TASKS_PREFIX + "Generate";
 
+    static final ComparableVersion AGP_3_0 = new ComparableVersion("3.0.0");
+    static final ComparableVersion AGP_3_1 = new ComparableVersion("3.1.0");
+
+    static final String AGP_VERSION = "AGP_VERSION";
 
     private Constant() {}
 }

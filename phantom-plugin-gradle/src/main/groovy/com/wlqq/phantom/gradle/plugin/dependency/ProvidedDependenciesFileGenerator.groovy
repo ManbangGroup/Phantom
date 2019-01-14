@@ -16,19 +16,39 @@
 
 package com.wlqq.phantom.gradle.plugin.dependency
 
+import com.android.build.gradle.internal.api.ApplicationVariantImpl
+import com.android.build.gradle.internal.ide.ArtifactDependencyGraph
+import com.android.build.gradle.internal.ide.ModelBuilder
+import com.android.build.gradle.internal.publishing.AndroidArtifacts
+import com.google.common.collect.ImmutableMap
+import com.wlqq.phantom.gradle.plugin.ComparableVersion
 import com.wlqq.phantom.gradle.plugin.Constant
-import org.gradle.api.GradleException
+import com.wlqq.phantom.gradle.plugin.PhantomPluginConfig
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.UnknownConfigurationException
-
+import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.joor.Reflect
 
 class ProvidedDependenciesFileGenerator extends FileGenerator {
-    Project project
+    private static final def COMPILE_ONLY_FILTER = { String gav ->
+        !gav.startsWith('com.wlqq.phantom:phantom-plugin-lib:') &&
+                !gav.startsWith('com.android.tools.build:gradle:') &&
+                !gav.startsWith('com.google.android:android:')
+    }
 
-    ProvidedDependenciesFileGenerator(Project project, File outputFileDir, String outputFileName) {
+    Project project
+    ApplicationVariantImpl applicationVariant
+    ComparableVersion agpVersion
+
+
+    ProvidedDependenciesFileGenerator(Project project, ApplicationVariantImpl variant, File outputFileDir, String outputFileName) {
         super(outputFileDir, outputFileName)
         this.project = project
+        this.applicationVariant = variant
+        this.agpVersion = (ComparableVersion) project.extensions.extraProperties[Constant.AGP_VERSION]
     }
 
     @Override
@@ -43,7 +63,7 @@ class ProvidedDependenciesFileGenerator extends FileGenerator {
             try {
                 it.configurations.getByName(type)
             } catch (UnknownConfigurationException e) {
-                return;
+                return
             }
 
             Iterator<Dependency> iterator = it.configurations.getByName(type).dependencies.iterator()
@@ -59,16 +79,18 @@ class ProvidedDependenciesFileGenerator extends FileGenerator {
     }
 
     private Set<String> resolveProvidedDependencies() {
-        def dependencies = findDependencies('provided').findAll { gav ->
-            // 忽略掉 com.wlqq.phantom:phantom-plugin-lib
-            !gav.startsWith('com.wlqq.phantom:phantom-plugin-lib:')
+
+        def dependencies = findDependencies('compileOnly').findAll(COMPILE_ONLY_FILTER)
+
+        if (dependencies.empty) {
+            dependencies = findDependencies('provided').findAll(COMPILE_ONLY_FILTER)
         }
 
-        def excludes = project.extensions.findByName(Constant.USER_CONFIG)
-        if (null != excludes) {
-            def compileLibs = findDependencies('compile')
+        PhantomPluginConfig config = project.extensions.findByName(Constant.USER_CONFIG)
+        if (null != config) {
+            def compileLibs = getCompileArtifacts()
             // excludeLib type : ExcludeConfig
-            for (def excludeLib : excludes.excludeLibs) {
+            for (def excludeLib : config.excludeLibs) {
                 compileLibs.each { compileLib ->
                     if (compileLib == excludeLib.name) {
                         dependencies.add("${excludeLib.groupId}:${excludeLib.artifactId}:${excludeLib.versionRequirement}")
@@ -78,5 +100,79 @@ class ProvidedDependenciesFileGenerator extends FileGenerator {
         }
 
         return dependencies
+    }
+
+    private Set<String> getCompileArtifacts() {
+        Set<String> dependencies
+
+        if (agpVersion.greaterThanOrEqualTo(Constant.AGP_3_1)) {
+            dependencies = getCompileArtifactsForAgp31x()
+        } else if (agpVersion.greaterThanOrEqualTo(Constant.AGP_3_0)) {
+            dependencies = getCompileArtifactsForAgp30x()
+        } else {
+            dependencies = getCompileArtifactsForAgp2x()
+        }
+
+        return dependencies
+    }
+
+    // for gradle android plugin 2.x.x
+    private Set<String> getCompileArtifactsForAgp2x() {
+        Set<String> compileLibs = new HashSet<>()
+
+        Configuration configuration = project.getConfigurations().getByName("compile")
+        if (configuration.isCanBeResolved()) {
+            ResolvableDependencies incoming = configuration.getIncoming()
+            ResolutionResult resolutionResult = incoming.getResolutionResult()
+            Set<ResolvedComponentResult> components = resolutionResult.getAllComponents()
+
+            for (ResolvedComponentResult result : components) {
+                ModuleVersionIdentifier identifier = result.getModuleVersion()
+                if (identifier != null && !"unspecified".equals(identifier.getVersion())) {
+                    compileLibs.add(
+                            String.join(":", identifier.getGroup(), identifier.getName(), identifier.getVersion()))
+                }
+            }
+        }
+
+        return compileLibs
+    }
+
+    // for gradle android plugin 3.0.x
+    private Set<String> getCompileArtifactsForAgp31x() {
+        ImmutableMap<String, String> buildMapping = ModelBuilder.computeBuildMapping(project.getGradle())
+        final Set<ArtifactDependencyGraph.HashableResolvedArtifactResult> allArtifacts =
+                ArtifactDependencyGraph.getAllArtifacts(
+                        applicationVariant.getVariantData().getScope(),
+                        AndroidArtifacts.ConsumedConfigType.COMPILE_CLASSPATH,
+                        null,
+                        buildMapping)
+        return getMavenArtifacts(allArtifacts)
+    }
+
+    // for gradle android plugin 3.1.x
+    private Set<String> getCompileArtifactsForAgp30x() {
+        final Set<ArtifactDependencyGraph.HashableResolvedArtifactResult> allArtifacts = Reflect.on("com.android.build.gradle.internal.ide.ArtifactDependencyGraph")
+                .call("getAllArtifacts",
+                applicationVariant.getVariantData().getScope(),
+                AndroidArtifacts.ConsumedConfigType.COMPILE_CLASSPATH,
+                null)
+                .get()
+        return getMavenArtifacts(allArtifacts)
+    }
+
+    private
+    static Set<String> getMavenArtifacts(Set<ArtifactDependencyGraph.HashableResolvedArtifactResult> allArtifacts) {
+        Set<String> deps = new HashSet<>()
+
+        for (ArtifactDependencyGraph.HashableResolvedArtifactResult result : allArtifacts) {
+            ComponentIdentifier id = result.getId().getComponentIdentifier()
+            if (id instanceof ModuleComponentIdentifier) {
+                ModuleComponentIdentifier module = (ModuleComponentIdentifier) id
+                deps.add(String.join(":", module.getGroup(), module.getModule(), module.getVersion()))
+            }
+        }
+
+        return deps
     }
 }

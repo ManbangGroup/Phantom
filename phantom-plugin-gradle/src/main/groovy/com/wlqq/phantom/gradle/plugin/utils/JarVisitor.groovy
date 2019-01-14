@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wlqq.phantom.gradle.plugin.utils;
+package com.wlqq.phantom.gradle.plugin.utils
 
 
 import java.util.zip.ZipEntry
@@ -30,5 +30,5 @@ interface JarVisitor {
      * @param outputJar Jar输出到的outputStream
      * @return true表示将当前entry输出到outputJar，false表示过滤掉当前entry
      */
-    boolean visitEntry(ZipEntry entry, ZipInputStream inputJar, ZipOutputStream outputJar);
+    boolean visitEntry(ZipEntry entry, ZipInputStream inputJar, ZipOutputStream outputJar)
 }

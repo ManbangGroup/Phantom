@@ -1,0 +1,25 @@
+ext {
+    androidVersion = [
+            androidGradlePlugin: "3.1.4",
+            compileSdk         : 28,
+            buildTools         : "28.0.3",
+            supportLib         : "28.0.0",
+            archLib            : "1.1.1",
+            minSdk             : 14,
+            targetSdk          : 22,
+            multidex           : "1.0.3",
+    ]
+
+    phantomVersion = [
+            hostLib         : "3.1.2",
+            hostLibInt      : 30102,
+            hostGradle      : "3.1.2",
+            pluginLib       : "3.1.2",
+            pluginGradle    : "3.1.2",
+            communicationLib: "3.1.2",
+    ]
+
+    testVersion = [
+            junit: "4.12",
+    ]
+}
