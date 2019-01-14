@@ -11,12 +11,12 @@ ext {
     ]
 
     phantomVersion = [
-            hostLib         : "3.1.0",
-            hostLibInt      : 30100,
-            hostGradle      : "3.1.0",
-            pluginLib       : "3.1.0",
-            pluginGradle    : "3.1.0",
-            communicationLib: "3.1.0",
+            hostLib         : "3.1.2",
+            hostLibInt      : 30102,
+            hostGradle      : "3.1.2",
+            pluginLib       : "3.1.2",
+            pluginGradle    : "3.1.2",
+            communicationLib: "3.1.2",
     ]
 
     testVersion = [

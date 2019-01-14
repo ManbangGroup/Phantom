@@ -51,8 +51,8 @@ android {
 }
 
 dependencies {
-    compileOnly 'com.wlqq.phantom:phantom-communication-lib:3.0.0'
-    compileOnly 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
+    compileOnly "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
+    compileOnly "com.wlqq.phantom:phantom-plugin-lib:${phantomVersion.pluginLib}"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.android.support:support-v4:${androidVersion.supportLib}"

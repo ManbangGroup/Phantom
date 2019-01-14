@@ -27,7 +27,7 @@ public interface IService extends ServiceInfo {
      * @param method 方法名，见 {@link RemoteMethod#name()}
      * @param args   调用参数列表
      * @return 调用方法的返回值
-     * @throws MethodNotFoundException
+     * @throws MethodNotFoundException 若方法名不存在
      * @see RemoteMethod#name()
      */
     Object call(String method, Object... args) throws MethodNotFoundException;

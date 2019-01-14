@@ -51,23 +51,12 @@ android {
 }
 
 dependencies {
-    compileOnly 'com.wlqq.phantom:phantom-communication-lib:3.0.0'
-    compileOnly 'com.wlqq.phantom:phantom-plugin-lib:3.0.0'
+    compileOnly "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
+    compileOnly "com.wlqq.phantom:phantom-plugin-lib:${phantomVersion.pluginLib}"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     implementation "com.android.support:support-v4:${androidVersion.supportLib}"
-    implementation "com.android.support:support-core-ui:${androidVersion.supportLib}"
-    implementation "com.android.support:support-compat:${androidVersion.supportLib}"
-    implementation "com.android.support:support-media-compat:${androidVersion.supportLib}"
-    implementation "com.android.support:support-core-utils:${androidVersion.supportLib}"
-    implementation "com.android.support:support-fragment:${androidVersion.supportLib}"
-    implementation "com.android.support:versionedparcelable:${androidVersion.supportLib}"
-    implementation "android.arch.lifecycle:runtime:${androidVersion.archLib}"
-    implementation "android.arch.lifecycle:common:${androidVersion.archLib}"
-    implementation "android.arch.lifecycle:livedata:${androidVersion.archLib}"
-    implementation "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
-    implementation "android.arch.core:common:${androidVersion.archLib}"
 
     implementation 'io.github.shaobin0604:awesomelog:1.0.1'
 

@@ -57,8 +57,8 @@ android {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    implementation "com.wlqq.phantom:phantom-host-lib:3.0.0"
-    implementation "com.wlqq.phantom:phantom-communication-lib:3.0.0"
+    implementation "com.wlqq.phantom:phantom-host-lib:${phantomVersion.hostLib}"
+    implementation "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
 
     implementation "com.android.support:support-v4:${androidVersion.supportLib}"
     implementation "com.android.support:appcompat-v7:${androidVersion.supportLib}"

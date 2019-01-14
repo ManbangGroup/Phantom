@@ -21,7 +21,7 @@ buildscript {
     repositories {
 //        mavenLocal()
         maven {
-            url 'http://maven.aliyun.com/nexus/content/groups/public/'
+            url 'http://maven.aliyun.com/'
         }
         jcenter()
         google()
@@ -30,10 +30,10 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:3.1.4"
 
-        classpath 'com.wlqq.phantom:phantom-host-gradle:3.1.0'
-        classpath 'com.wlqq.phantom:phantom-plugin-gradle:3.1.0'
+        classpath 'com.wlqq.phantom:phantom-host-gradle:3.1.2'
+        classpath 'com.wlqq.phantom:phantom-plugin-gradle:3.1.2'
 
-        classpath 'com.novoda:bintray-release:0.7.0'
+        classpath 'com.novoda:bintray-release:0.9'
     }
 }
 
@@ -41,7 +41,7 @@ allprojects {
     repositories {
 //        mavenLocal()
         maven {
-            url 'http://maven.aliyun.com/nexus/content/groups/public/'
+            url 'http://maven.aliyun.com/'
         }
         jcenter()
         google()
@@ -61,6 +61,8 @@ subprojects { subProject ->
     subProject.tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
+
+    tasks.withType(Javadoc).all { enabled = false }
 
     afterEvaluate { project ->
         if (project.hasProperty("android")) {

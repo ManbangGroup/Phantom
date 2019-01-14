@@ -1,5 +1,5 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/ManbangGroup/Phantom/blob/master/LICENSE)
-[![Release Version](https://img.shields.io/badge/release-3.1.0-brightgreen.svg)](https://github.com/ManbangGroup/Phantom/releases)
+[![Release Version](https://img.shields.io/badge/release-3.1.2-brightgreen.svg)](https://github.com/ManbangGroup/Phantom/releases)
 
 # Phantom — 唯一零 Hook 稳定占坑类 Android 热更新插件化方案
 
@@ -36,7 +36,7 @@ Phantom 是满帮集团开源的一套稳定、灵活、兼容性好的 Android 
 ```groovy
 buildscript {
     dependencies {
-      classpath 'com.wlqq.phantom:phantom-host-gradle:3.1.0'
+      classpath 'com.wlqq.phantom:phantom-host-gradle:3.1.2'
     }
 }
 ```
@@ -45,7 +45,7 @@ buildscript {
 
 ```groovy
 dependencies {
-    compile 'com.wlqq.phantom:phantom-host-lib:3.1.0'
+    compile 'com.wlqq.phantom:phantom-host-lib:3.1.2'
 }
 
 apply plugin: 'com.wlqq.phantom.host'
@@ -88,7 +88,7 @@ if (ret.isSuccess() && ret.plugin.start()) {
 ```groovy
 buildscript {
     dependencies {
-      classpath 'com.wlqq.phantom:phantom-plugin-gradle:3.1.0'
+      classpath 'com.wlqq.phantom:phantom-plugin-gradle:3.1.2'
     }
 }
 ```
@@ -108,7 +108,7 @@ android {
 }
 
 dependencies {
-    provided 'com.wlqq.phantom:phantom-plugin-lib:3.1.0'
+    provided 'com.wlqq.phantom:phantom-plugin-lib:3.1.2'
     compile 'com.android.support:support-v4:28.0.0'
 }
 
