@@ -31,6 +31,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.qihoo360.replugin.sample.webview.utils.WebViewResourceHelper;
 import com.wlqq.phantom.communication.IService;
 import com.wlqq.phantom.communication.MethodNotFoundException;
 import com.wlqq.phantom.communication.PhantomServiceManager;
@@ -42,6 +43,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
     NotificationManagerCompat nm;
 
+    @SuppressLint("JavascriptInterface")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,12 +52,30 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         findViewById(R.id.btn_toast).setOnClickListener(this);
         findViewById(R.id.btn_notification).setOnClickListener(this);
         findViewById(R.id.btn_webview).setOnClickListener(this);
-        mWebView = (WebView) findViewById(R.id.webview);
+
+        initWebView();
 
         nm = NotificationManagerCompat.from(this);
     }
 
-    @SuppressLint("JavascriptInterface")
+    private void initWebView() {
+        mWebView = (WebView) findViewById(R.id.webview);
+        WebViewResourceHelper.addChromeResourceIfNeeded(this);
+        final WebSettings settings = mWebView.getSettings();
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setUseWideViewPort(true);
+        settings.setJavaScriptEnabled(true);
+        mWebView.setWebChromeClient(new WebChromeClient());
+        mWebView.addJavascriptInterface(this, "android");
+        mWebView.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return super.shouldOverrideUrlLoading(view, url);
+            }
+        });
+    }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -86,19 +106,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 nm.notify(0xFF, builder.build());
                 break;
             case R.id.btn_webview:
-                final WebSettings settings = mWebView.getSettings();
-                settings.setSupportZoom(true);
-                settings.setBuiltInZoomControls(true);
-                settings.setUseWideViewPort(true);
-                settings.setJavaScriptEnabled(true);
-                mWebView.setWebChromeClient(new WebChromeClient());
-                mWebView.addJavascriptInterface(this, "android");
-                mWebView.setWebViewClient(new WebViewClient() {
-                    @Override
-                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                        return super.shouldOverrideUrlLoading(view, url);
-                    }
-                });
                 mWebView.setVisibility(View.VISIBLE);
                 mWebView.loadUrl("http://www.baidu.com");
                 break;
