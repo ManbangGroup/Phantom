@@ -27,7 +27,9 @@ import com.wlqq.phantom.library.utils.ClassUtils;
 import com.wlqq.phantom.library.utils.ThreadUtils;
 import com.wlqq.phantom.library.utils.VLog;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -76,13 +78,13 @@ public class ApplicationHostProxy {
             LogReporter.reportState(LogReporter.EventId.PLUGIN_APPLICATION, true, pluginInfo.packageName, mExtMsg);
             LogReporter.reportLog(pluginInfo.packageName + "_" + pluginInfo.versionName
                     + "/" + ClassUtils.getSimpleName(mPluginApplicationClassName)
-                    + " onCreate success");
+                    + " load success");
         } catch (Throwable e) {
             final String message = e.getMessage();
-            VLog.w(e, "ApplicationHostProxy %s create error", mPluginApplicationClassName);
+            VLog.w(e, "ApplicationHostProxy %s load error", mPluginApplicationClassName);
             LogReporter.reportLog(pluginInfo.packageName + "_" + pluginInfo.versionName
                     + "/" + ClassUtils.getSimpleName(mPluginApplicationClassName)
-                    + " onCreate fail");
+                    + " load fail");
 
             mExtMsg.put(LogReporter.Key.MESSAGE, message);
 
@@ -169,11 +171,16 @@ public class ApplicationHostProxy {
      * 2.1 将 {@link Application#onCreate} post 到 UI 线程中执行
      * 2.2 当前线程等待 {@link Application#onCreate} 执行完之后再继续执行
      */
-    public void callApplicationOnCreateInUiThread() {
+    public void callApplicationOnCreateInUiThread() throws Throwable {
         VLog.d("callApplicationOnCreateInUiThread E");
+        final List<Throwable> throwable = new ArrayList<>(1);
         if (ThreadUtils.isInUiThread()) {
             if (mAttached) {
-                mPluginApplication.onCreate();
+                try {
+                    mPluginApplication.onCreate();
+                } catch (Throwable e) {
+                    throwable.add(e);
+                }
             }
             VLog.d("callApplicationOnCreateInUiThread X, isInUiThread: true");
         } else {
@@ -184,7 +191,11 @@ public class ApplicationHostProxy {
                 public void run() {
                     VLog.d("callApplicationOnCreateInUiThread runOnUiThread E");
                     if (mAttached) {
-                        mPluginApplication.onCreate();
+                        try {
+                            mPluginApplication.onCreate();
+                        } catch (Throwable e) {
+                            throwable.add(e);
+                        }
                     }
                     VLog.d("callApplicationOnCreateInUiThread runOnUiThread X");
                     conditionVariable.open();
@@ -196,6 +207,21 @@ public class ApplicationHostProxy {
             VLog.d("callApplicationOnCreateInUiThread after block");
 
             VLog.d("callApplicationOnCreateInUiThread X");
+
+            if (throwable.isEmpty()) {
+                LogReporter.reportLog(mPluginInfo.packageName + "_" + mPluginInfo.versionName
+                        + "/" + ClassUtils.getSimpleName(mPluginApplicationClassName)
+                        + " onCreate success");
+            } else {
+                Throwable e = throwable.get(0);
+                VLog.w(e, "ApplicationHostProxy %s onCreate error", mPluginApplicationClassName);
+                LogReporter.reportLog(mPluginInfo.packageName + "_" + mPluginInfo.versionName
+                        + "/" + ClassUtils.getSimpleName(mPluginApplicationClassName)
+                        + " onCreate fail");
+                LogReporter.reportException(e, mExtMsg);
+
+                throw e;
+            }
         }
     }
 
