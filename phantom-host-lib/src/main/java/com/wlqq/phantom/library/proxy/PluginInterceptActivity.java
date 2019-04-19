@@ -329,9 +329,20 @@ public class PluginInterceptActivity extends FragmentActivity {
         return mContentProxy.getContext().getCurrentFocus();
     }
 
+    /**
+     * 设置 Activity 切换动画
+     * <p>
+     * 动画资源不能放到插件中，只能使用 Android 系统提供的动画资源或将动画资源放到宿主中
+     *
+     * @param enterAnim A resource ID of the animation resource to use for the incoming activity.  Use 0 for no
+     *                  animation.
+     * @param exitAnim  A resource ID of the animation resource to use for the outgoing activity.  Use 0 for no
+     *                  animation.
+     */
+
     @Override
     public void overridePendingTransition(int enterAnim, int exitAnim) {
-        //不支持Activity切换动画，Activity的切换动画的动画资源文件必须放在宿主中
+        mContentProxy.getContext().overridePendingTransition(enterAnim, exitAnim);
     }
 
     @Override

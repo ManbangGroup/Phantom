@@ -612,12 +612,6 @@ public class ActivityHostProxy extends FragmentActivity implements Cloneable {
         return super.bindService(setPluginServiceFlag(service), conn, flags);
     }
 
-
-    @SuppressWarnings("PMD.UncommentedEmptyMethodBody")
-    @Override
-    public void overridePendingTransition(int enterAnim, int exitAnim) {
-    }
-
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
