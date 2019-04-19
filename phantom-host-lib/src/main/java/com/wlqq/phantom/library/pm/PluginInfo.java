@@ -36,6 +36,9 @@ import android.support.annotation.Nullable;
 import android.support.v4.util.ArrayMap;
 import android.text.TextUtils;
 import android.util.TimingLogger;
+
+import dalvik.system.DexFile;
+
 import com.taobao.android.dex.interpret.ARTUtils;
 import com.wlqq.phantom.library.PhantomCore;
 import com.wlqq.phantom.library.PhantomEventCallback;
@@ -47,7 +50,6 @@ import com.wlqq.phantom.library.proxy.ResourcesProxy;
 import com.wlqq.phantom.library.utils.FileUtils;
 import com.wlqq.phantom.library.utils.TimingUtils;
 import com.wlqq.phantom.library.utils.VLog;
-import dalvik.system.DexFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +58,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 已安装插件的描述信息
@@ -221,6 +225,8 @@ public final class PluginInfo {
     private ApplicationHostProxy mApplication;
 
     private volatile boolean mStarted;
+
+    private final Lock mLock = new ReentrantLock();
 
     /**
      * 创建插件描述实例
@@ -461,61 +467,71 @@ public final class PluginInfo {
      *
      * @return true 启动成功；false 启动失败
      */
-    @SuppressWarnings("PMD.AvoidSynchronizedAtMethodLevel")
-    public synchronized boolean start() {
-        if (mStarted) {
-            VLog.w("PluginInfo#start already started, skip this time");
-            return true;
-        }
+    public boolean start() {
+        if (mLock.tryLock()) {
+            VLog.v("start tryLock ok");
+            try {
+                if (mStarted) {
+                    VLog.w("PluginInfo#start already started, skip this time");
+                    return true;
+                }
 
-        final boolean firstStart = isFirstStart();
+                final boolean firstStart = isFirstStart();
 
-        Context context = PhantomCore.getInstance().getContext();
-        HashMap<String, Object> params = new HashMap<>(1);
-        params.put(LogReporter.Key.VERSION_NAME, versionName);
-        try {
-            final String tagLoad = packageName;
+                Context context = PhantomCore.getInstance().getContext();
+                HashMap<String, Object> params = new HashMap<>(1);
+                params.put(LogReporter.Key.VERSION_NAME, versionName);
+                try {
+                    final String tagLoad = packageName;
 
-            notifyPluginStartStartIfNeeded(this, firstStart);
+                    notifyPluginStartStartIfNeeded(this, firstStart);
 
-            TimingUtils.startTime(tagLoad);
-            loadPlugin(context, firstStart);
-            final String normalizedDuration = TimingUtils.getNormalizedDuration(tagLoad,
-                    TimingUtils.SECTION_DURATION_500_MS, TimingUtils.MAX_SECTION_40);
-            trackPluginLoadTime(firstStart, normalizedDuration);
+                    TimingUtils.startTime(tagLoad);
+                    loadPlugin(context, firstStart);
+                    final String normalizedDuration = TimingUtils.getNormalizedDuration(tagLoad,
+                            TimingUtils.SECTION_DURATION_500_MS, TimingUtils.MAX_SECTION_40);
+                    trackPluginLoadTime(firstStart, normalizedDuration);
 
-            mStarted = true;
+                    mStarted = true;
 
-            VLog.i("PluginInfo#start ok, first start: %s, pn: %s, vn: %s, cost: %s", firstStart, packageName,
-                    versionName, normalizedDuration);
+                    VLog.i("PluginInfo#start ok, first start: %s, pn: %s, vn: %s, cost: %s", firstStart, packageName,
+                            versionName, normalizedDuration);
 
-            LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD, true, packageName, params);
-            if (firstStart) {
-                LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD_FIRST, true, packageName, params);
+                    LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD, true, packageName, params);
+                    if (firstStart) {
+                        LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD_FIRST, true, packageName, params);
+                    }
+
+                    notifyPluginStartSuccessIfNeeded(this, firstStart);
+                } catch (Throwable throwable) {
+                    final String msg = String.format(Locale.ENGLISH,
+                            "PluginInfo#start error, first start: %s, pn: %s, vn: %s",
+                            firstStart, packageName, versionName);
+                    VLog.w(throwable, msg);
+                    LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD, false, packageName, params);
+                    if (firstStart) {
+                        LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD_FIRST, false, packageName, params);
+                    }
+
+                    LogReporter.reportLog(String.format(Locale.ENGLISH, "%s_%s.apk, md5: %s", packageName, versionName,
+                            FileUtils.calculateMd5(new File(apkPath))));
+                    LogReporter.reportUsableSpaceMegabytes();
+                    LogReporter.reportException(new LoadPluginException(msg, throwable), null);
+
+                    notifyPluginStartFailIfNeeded(this, firstStart, throwable);
+
+                    // ANDROID_PHANTOM-160 插件启动失败，卸载该插件
+                    PhantomCore.getInstance().uninstallPlugin(packageName);
+                }
+
+                return mStarted;
+            } finally {
+                mLock.unlock();
             }
-
-            notifyPluginStartSuccessIfNeeded(this, firstStart);
-        } catch (Throwable throwable) {
-            final String msg = String.format(Locale.ENGLISH, "PluginInfo#start error, first start: %s, pn: %s, vn: %s",
-                    firstStart, packageName, versionName);
-            VLog.w(throwable, msg);
-            LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD, false, packageName, params);
-            if (firstStart) {
-                LogReporter.reportState(LogReporter.EventId.PLUGIN_LOAD_FIRST, false, packageName, params);
-            }
-
-            LogReporter.reportLog(String.format(Locale.ENGLISH, "%s_%s.apk, md5: %s", packageName, versionName,
-                    FileUtils.calculateMd5(new File(apkPath))));
-            LogReporter.reportUsableSpaceMegabytes();
-            LogReporter.reportException(new LoadPluginException(msg, throwable), null);
-
-            notifyPluginStartFailIfNeeded(this, firstStart, throwable);
-
-            // ANDROID_PHANTOM-160 插件启动失败，卸载该插件
-            PhantomCore.getInstance().uninstallPlugin(packageName);
+        } else {
+            VLog.v("start tryLock fail");
+            return false;
         }
-
-        return mStarted;
     }
 
     /**
@@ -535,7 +551,8 @@ public final class PluginInfo {
      * @param time       通过 {@link TimingUtils#normalizeDuration(long, int, int)} 归一化的耗时描述
      */
     private void trackDexLoadTime(boolean firstStart, String time) {
-        trackLoadTime(firstStart ? LogReporter.EventId.PLUGIN_DEX_LOAD_FIRST : LogReporter.EventId.PLUGIN_DEX_LOAD, time);
+        trackLoadTime(firstStart ? LogReporter.EventId.PLUGIN_DEX_LOAD_FIRST : LogReporter.EventId.PLUGIN_DEX_LOAD,
+                time);
     }
 
     /**

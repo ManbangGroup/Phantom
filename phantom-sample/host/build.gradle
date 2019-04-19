@@ -72,10 +72,10 @@ dependencies {
 }
 
 
-// uncomment the following line to use the latest phantom-host-lib source code to build sample
-//
-//configurations.all {
-//    resolutionStrategy.dependencySubstitution {
-//        substitute module("com.wlqq.phantom:phantom-host-lib:${phantomVersion.hostLib}") with project(":phantom-host-lib")
-//    }
-//}
+configurations.all {
+    if (project.hasProperty("depend-host-lib-source")) {
+        resolutionStrategy.dependencySubstitution {
+            substitute module("com.wlqq.phantom:phantom-host-lib:${phantomVersion.hostLib}") with project(":phantom-host-lib")
+        }
+    }
+}
