@@ -54,6 +54,9 @@ dependencies {
     compileOnly "com.wlqq.phantom:phantom-communication-lib:${phantomVersion.communicationLib}"
     compileOnly "com.wlqq.phantom:phantom-plugin-lib:${phantomVersion.pluginLib}"
 
+    implementation 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+    implementation 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.8'
+
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.android.support:support-v4:${androidVersion.supportLib}"
     implementation 'io.github.shaobin0604:awesomelog:1.0.1'

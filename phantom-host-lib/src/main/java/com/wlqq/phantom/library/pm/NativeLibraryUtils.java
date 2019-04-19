@@ -101,6 +101,7 @@ final class NativeLibraryUtils {
      * @param zipFile          APK file to scan for native libraries
      * @param sharedLibraryDir directory for libraries to be copied to
      * @param abi              device abi type
+     * @return copy so successfully
      * @throws CopyNativeSoException 拷贝 so 失败
      * @see #ABI_ARMEABI
      * @see #ABI_ARMEABI_V7A
@@ -112,6 +113,7 @@ final class NativeLibraryUtils {
      */
     static boolean copyNativeBinaries(@NonNull ZipFile zipFile, @NonNull File sharedLibraryDir, @NonNull String abi)
             throws CopyNativeSoException {
+        int copiedSoCount = 0;
         try {
             Enumeration<? extends ZipEntry> entries = zipFile.entries();
             while (entries.hasMoreElements()) {
@@ -125,10 +127,10 @@ final class NativeLibraryUtils {
                     final File destination = new File(sharedLibraryDir, soName);
                     VLog.w("copy from %s to %s", name, destination);
                     FileUtils.copyInputStreamToFile(zipFile.getInputStream(entry), destination);
-                    return true;
+                    copiedSoCount++;
                 }
             }
-            return false;
+            return copiedSoCount > 0;
         } catch (IOException e) {
             final String msg = "copyNativeBinaries error, abi: " + abi;
             VLog.w(e, msg);
