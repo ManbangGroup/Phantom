@@ -1,5 +1,5 @@
 [![license](http://img.shields.io/badge/license-Apache2.0-brightgreen.svg?style=flat)](https://github.com/ManbangGroup/Phantom/blob/master/LICENSE)
-[![Release Version](https://img.shields.io/badge/release-3.1.2-brightgreen.svg)](https://github.com/ManbangGroup/Phantom/releases)
+[![Release Version](https://img.shields.io/badge/release-3.1.3-brightgreen.svg)](https://github.com/ManbangGroup/Phantom/releases)
 
 # Phantom — 唯一零 Hook 稳定占坑类 Android 热更新插件化方案
 
@@ -45,7 +45,7 @@ buildscript {
 
 ```groovy
 dependencies {
-    compile 'com.wlqq.phantom:phantom-host-lib:3.1.2'
+    compile 'com.wlqq.phantom:phantom-host-lib:3.1.3'
 }
 
 apply plugin: 'com.wlqq.phantom.host'
