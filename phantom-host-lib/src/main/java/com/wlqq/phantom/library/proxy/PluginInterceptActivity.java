@@ -319,6 +319,12 @@ public class PluginInterceptActivity extends FragmentActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+            @NonNull int[] grantResults) {
+        //共享window，FragmentManager后不需要调用super方法，否则会引起一些错误
+    }
+
+    @Override
     public View findViewById(@IdRes int id) {
         return mContentProxy.getContext().findViewById(id);
     }
