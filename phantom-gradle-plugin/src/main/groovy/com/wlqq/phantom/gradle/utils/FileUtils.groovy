@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Manbang Group
+ * Copyright (C) 2017-2019 Manbang Group
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-include ':phantom-host-lib'
-include ':phantom-plugin-lib'
-include ':phantom-gradle-plugin'
-//include ':phantom-host-gradle'
-//include ':phantom-plugin-gradle'
-include ':phantom-communication-lib'
-include ':maven-version'
-include ':phantom-sample:host'
-include ':phantom-sample:plugin-component'
-include ':phantom-sample:plugin-view'
+package com.wlqq.phantom.gradle.utils;
+
+class FileUtils {
+    static void saveFile(File dir, String fileName, Closure<List<?>> action) {
+        List<?> list = action.call()
+        saveFile(dir, fileName, list)
+    }
+
+    static void saveFile(File dir, String fileName, Collection<?> collection) {
+        dir.mkdirs()
+        def file = new File(dir, "${fileName}.txt")
+        file.withWriter("utf-8") { writer ->
+            collection.each {
+                writer.println(it)
+            }
+        }
+    }
+
+}

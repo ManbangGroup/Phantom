@@ -132,6 +132,7 @@ phantomPluginConfig {
     excludeLib "android.arch.lifecycle:livedata:${androidVersion.archLib}"
     excludeLib "android.arch.lifecycle:livedata-core:${androidVersion.archLib}"
     excludeLib "android.arch.core:common:${androidVersion.archLib}"
+    excludeLib "android.arch.core:runtime:${androidVersion.archLib}"
     /*------------------------------ 删除 support-v4 及其依赖的库  END  ----------------------------*/
 
     /*------------------------------ 混淆配置 BEGIN ------------------------------*/
