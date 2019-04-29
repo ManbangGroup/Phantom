@@ -190,6 +190,11 @@ public final class PluginInfo {
      * 插件对应的 PackageInfo
      */
     public final PackageInfo packageInfo;
+
+    /**
+     * 插件安装目录
+     */
+    public final File installDir;
     /**
      * key is Activity ComponentName
      */
@@ -252,6 +257,8 @@ public final class PluginInfo {
         this.versionName = packageInfo.versionName;
         this.versionCode = packageInfo.versionCode;
         this.packageInfo = packageInfo;
+        this.installDir = new File(apkPath).getParentFile();
+
         mActivitiesInfo = new ArrayMap<>();
         mProvidedDependencies = providedDependencies;
 
@@ -318,6 +325,32 @@ public final class PluginInfo {
      */
     public boolean isHotUpgrade() {
         return mHotUpgrade;
+    }
+
+    /**
+     * multidex extra dex file dir for Android 4.x only
+     *
+     * @return multi-dex extra dex file dir
+     */
+    public File getExtraDexesDir() {
+        return getDexDir(PluginManager.EXTRA_DEX_DIR);
+    }
+
+    /**
+     * multidex extra odex file dir for Android 4.x only
+     *
+     * @return multi-dex extra odex file dir
+     */
+    public File getExtraOdexesDir() {
+        return getDexDir(PluginManager.EXTRA_ODEX_DIR);
+    }
+
+    private File getDexDir(String dir) {
+        File extraDexDir = new File(installDir, dir);
+        if (!extraDexDir.exists()) {
+            extraDexDir.mkdir();
+        }
+        return extraDexDir;
     }
 
     // 解析插件 AndroidManifest 中的 meta-data 元素
@@ -652,11 +685,11 @@ public final class PluginInfo {
             // 3. 重新启用 dexopt
             // 4. 在后台线程中进行 dexopt ，提升在后续冷启动 **非首次** 运行插件效率
             ARTUtils.setIsDex2oatEnabled(false);
-            mPluginClassLoader = new PluginClassLoader(apkPath, odexDir, libPath, ctx.getClassLoader());
+            mPluginClassLoader = new PluginClassLoader(this, ctx.getClassLoader());
             ARTUtils.setIsDex2oatEnabled(true);
             AsyncTask.execute(new DexOptTask(apkPath, odexPath));
         } else {
-            mPluginClassLoader = new PluginClassLoader(apkPath, odexDir, libPath, ctx.getClassLoader());
+            mPluginClassLoader = new PluginClassLoader(this, ctx.getClassLoader());
         }
 
         trackDexLoadTime(firstStart, TimingUtils.getNormalizedDuration(tagDexLoad, TimingUtils.SECTION_DURATION_500_MS,

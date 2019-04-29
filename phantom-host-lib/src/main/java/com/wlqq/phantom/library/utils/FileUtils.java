@@ -20,6 +20,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -215,6 +217,26 @@ public final class FileUtils {
             } catch (Exception ignored) {
                 // ignore it
             }
+        }
+    }
+
+    public static int readFileToInt(final File file) throws IOException {
+        DataInputStream inputStream = null;
+        try {
+            inputStream = new DataInputStream(new FileInputStream(file));
+            return inputStream.readInt();
+        } finally {
+            IoUtils.closeQuietly(inputStream);
+        }
+    }
+
+    public static void writeIntToFile(final File file, int data) throws IOException {
+        DataOutputStream outputStream = null;
+        try {
+            outputStream = new DataOutputStream(new FileOutputStream(file));
+            outputStream.writeInt(data);
+        } finally {
+            IoUtils.closeQuietly(outputStream);
         }
     }
 

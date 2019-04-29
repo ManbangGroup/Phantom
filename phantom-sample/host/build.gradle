@@ -71,8 +71,7 @@ dependencies {
     implementation 'com.tencent.bugly:crashreport_upgrade:1.1.7'
 }
 
-// uncomment the following line to use the latest phantom-host-lib source code to build sample
-//
+// use the latest phantom-host-lib source code to build sample
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute module("com.wlqq.phantom:phantom-host-lib:${phantomVersion.hostLib}") with project(":phantom-host-lib")

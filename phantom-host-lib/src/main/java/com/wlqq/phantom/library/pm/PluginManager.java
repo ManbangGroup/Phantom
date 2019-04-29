@@ -42,6 +42,7 @@ import com.wlqq.phantom.communication.PhantomServiceManager;
 import com.wlqq.phantom.communication.IService;
 import com.wlqq.phantom.library.env.Constants;
 import com.wlqq.phantom.library.log.LogReporter;
+import com.wlqq.phantom.library.proxy.PluginClassLoader;
 import com.wlqq.phantom.library.utils.DigestUtils;
 import com.wlqq.phantom.library.utils.FileUtils;
 import com.wlqq.phantom.library.utils.IoUtils;
@@ -67,10 +68,28 @@ import java.util.Set;
  */
 @SuppressWarnings("PMD.ConfusingTernary")
 public class PluginManager {
+    // 插件 so 库目录
     private static final String LIB_DIR = "lib";
+
+    // 插件优化后的 dex 目录（Android 5.0 及以上设备）
     private static final String OAT_DIR = "oat";
+
+    // 插件优化后的 dex 目录（Android 5.0 以下设备）
     private static final String ODEX_DIR = "odex";
+
+    // 插件多 dex 目录（Android 5.0 以下设备）
+    static final String EXTRA_DEX_DIR = "ed";
+
+    // 插件优化后多 dex 目录（Android 5.0 以下设备）
+    static final String EXTRA_ODEX_DIR = "eod";
+
+    // 用于记录额外的 dex 数量（Android 5.0 以下设备）
+    static final String EXTRA_DEX_COUNT_FILE = PluginClassLoader.EXTRA_DEX_COUNT_FILE;
+
+    // 插件原始 APK 文件名
     private static final String BASE_APK = "base.apk";
+
+    // 插件优化后 DEX 文件名
     private static final String BASE_DEX = "base.dex";
 
     private static final String COMPILE_DEPENDENCIES_FILE = "compile_dependencies.txt";

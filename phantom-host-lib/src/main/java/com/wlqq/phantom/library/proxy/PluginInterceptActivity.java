@@ -427,9 +427,9 @@ public class PluginInterceptActivity extends FragmentActivity {
             Class viewCls;
             //android5.0及以上默认就是material风格
             if (mUseCompatTheme && Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                viewCls = mContentProxy.getClassLoader().findClass(getCompatV7ViewClass(name));
+                viewCls = mContentProxy.getClassLoader().findClassFast(getCompatV7ViewClass(name));
             } else {
-                viewCls = mContentProxy.getClassLoader().findClass(name);
+                viewCls = mContentProxy.getClassLoader().findClassFast(name);
             }
             if (null != viewCls) {
                 Constructor<? extends View> constructor = viewCls.getConstructor(
@@ -456,7 +456,7 @@ public class PluginInterceptActivity extends FragmentActivity {
      */
     private boolean useAppCompatTheme() {
         try {
-            Class styleCls = mContentProxy.getClassLoader().findClass("android.support.v7.appcompat.R$styleable");
+            Class styleCls = mContentProxy.getClassLoader().findClassFast("android.support.v7.appcompat.R$styleable");
             Field themeField = styleCls.getDeclaredField("AppCompatTheme");
             themeField.setAccessible(true);
             int[] compatTheme = (int[]) themeField.get(null);
