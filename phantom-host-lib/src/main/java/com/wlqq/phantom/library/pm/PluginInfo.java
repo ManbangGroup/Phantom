@@ -48,6 +48,7 @@ import com.wlqq.phantom.library.proxy.ApplicationHostProxy;
 import com.wlqq.phantom.library.proxy.PluginClassLoader;
 import com.wlqq.phantom.library.proxy.ResourcesProxy;
 import com.wlqq.phantom.library.utils.FileUtils;
+import com.wlqq.phantom.library.utils.SuppressFBWarnings;
 import com.wlqq.phantom.library.utils.TimingUtils;
 import com.wlqq.phantom.library.utils.VLog;
 
@@ -345,6 +346,7 @@ public final class PluginInfo {
         return getDexDir(PluginManager.EXTRA_ODEX_DIR);
     }
 
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     private File getDexDir(String dir) {
         File extraDexDir = new File(installDir, dir);
         if (!extraDexDir.exists()) {

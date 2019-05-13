@@ -454,6 +454,7 @@ public class PluginInterceptActivity extends FragmentActivity {
      *
      * @return true使用appcompat-v7主题，false其他主题
      */
+    @SuppressFBWarnings("REC_CATCH_EXCEPTION")
     private boolean useAppCompatTheme() {
         try {
             Class styleCls = mContentProxy.getClassLoader().findClassFast("android.support.v7.appcompat.R$styleable");

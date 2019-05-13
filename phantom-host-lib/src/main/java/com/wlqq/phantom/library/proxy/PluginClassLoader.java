@@ -27,6 +27,7 @@ import com.wlqq.phantom.library.pm.PluginInfo;
 import com.wlqq.phantom.library.utils.FileUtils;
 import com.wlqq.phantom.library.utils.IoUtils;
 import com.wlqq.phantom.library.utils.ReflectUtils;
+import com.wlqq.phantom.library.utils.SuppressFBWarnings;
 import com.wlqq.phantom.library.utils.VLog;
 
 import java.io.File;
@@ -279,6 +280,7 @@ public class PluginClassLoader extends DexClassLoader {
         return FileUtils.readFileToInt(getDexesCountFile(pi));
     }
 
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
     private static void putSecondaryDexesCount(PluginInfo pi, List<File> extractedDexes) {
         final File dexesCountFile = getDexesCountFile(pi);
         try {
