@@ -1,30 +1,36 @@
 CHANGELOG
 ---------
 
+## 3.1.3 @2019-04-28
+
+### Bugs
+
+* 2019-04-28 | fix(ANDROID_PHANTOM-396): 特定情况下插件依赖信息生成错误
+
 ## 3.1.1 @2019-04-03
 
 ### Bugs
 
-* f18676d 2019-04-02 | fix(ANDROID_PHANTOM-388): 生成的 proguard-wl-exclude.pro 内容不完整 [Bin Shao]
+* 2019-04-02 | fix(ANDROID_PHANTOM-388): 生成的 proguard-wl-exclude.pro 内容不完整
 
 ## 3.1.0 @2019-03-01
 
 ### Feature
 
-* bcca03f 2019-03-01 | feat(ANDROID_PHANTOM-380): 编译时在 build 目录下备份自动生成的依赖信息 [Bin Shao]
-* 69eb78c 2019-02-28 | feat(ANDROID_PHANTOM-379): 支持禁用自动生成插件依赖描述文件 [Bin Shao]
+* 2019-03-01 | feat(ANDROID_PHANTOM-380): 编译时在 build 目录下备份自动生成的依赖信息
+* 2019-02-28 | feat(ANDROID_PHANTOM-379): 支持禁用自动生成插件依赖描述文件
 
 ## 3.0.1 @2019-02-26
 
 ### Bugs
 
-* 7405b95 2019-02-28 | fix(ANDROID_PHANTOM-374): 依赖库没有提前编译会导致编译失败 [Bin Shao]
+* 2019-02-28 | fix(ANDROID_PHANTOM-374): 依赖库没有提前编译会导致编译失败
 
 ## 3.0.0 @2019-02-25
 
 ### Features
 
-* 0996a3a 2019-01-28 | feat(ANDROID_PHANTOM-374): 将原各个插件的功能合并到一个新插件中 [Bin Shao]
+* 2019-01-28 | feat(ANDROID_PHANTOM-374): 将原各个插件的功能合并到一个新插件中
 
 ### Behavior Changes
 

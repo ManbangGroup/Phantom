@@ -17,8 +17,6 @@
 include ':phantom-host-lib'
 include ':phantom-plugin-lib'
 include ':phantom-gradle-plugin'
-//include ':phantom-host-gradle'
-//include ':phantom-plugin-gradle'
 include ':phantom-communication-lib'
 include ':maven-version'
 include ':phantom-sample:host'
