@@ -1,0 +1,47 @@
+language: android
+sudo: false
+jdk: oraclejdk8
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.android/build-cache
+env:
+  global:
+    - ANDROID_API=28
+    - EMULATOR_API=28
+    - ANDROID_BUILD_TOOLS=28.0.3
+
+android:
+  components:
+    - tools
+    - platform-tools
+    - build-tools-$ANDROID_BUILD_TOOLS
+    - android-$ANDROID_API
+    - android-$EMULATOR_API_LEVEL
+    - extra-google-m2repository
+    - extra-android-m2repository # for design library
+    - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_API_LEVEL
+    - sys-img-armeabi-v7a-addon-google_apis-google-$EMULATOR_API_LEVEL
+
+  licenses:
+    - 'android-sdk-preview-license-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
+
+before_install:
+  - chmod +x gradlew
+  - ./gradlew dependencies || true
+
+before_script:
+
+
+script:
+  - "./gradlew phantom-host-lib:okcheck"
+
+before_deploy:
