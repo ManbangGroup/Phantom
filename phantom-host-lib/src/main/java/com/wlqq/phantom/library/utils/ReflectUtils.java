@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Modified from RePlugin https://github.com/Qihoo360/RePlugin/blob/dev/replugin-host-library/replugin-host-lib/src/main/java/com/qihoo360/replugin/utils/ReflectUtils.java
+ * Modified from RePlugin Qihoo360/RePlugin ReflectUtils.java
  */
 public final class ReflectUtils {
     // ----------------

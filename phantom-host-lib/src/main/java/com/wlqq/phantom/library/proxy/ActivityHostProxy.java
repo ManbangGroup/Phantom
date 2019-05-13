@@ -113,7 +113,8 @@ public class ActivityHostProxy extends FragmentActivity implements Cloneable {
         ON_ACTIVITY_RESULT = ReflectUtils.getMethod(activityClass, "onActivityResult",
                 integerClass, integerClass, intentClass);
         ON_NEW_INTENT = ReflectUtils.getMethod(activityClass, "onNewIntent", intentClass);
-        ON_REQUEST_PERMISSIONS_RESULT = ReflectUtils.getMethod(activityClass, "onRequestPermissionsResult", int.class, String[].class, int[].class);
+        ON_REQUEST_PERMISSIONS_RESULT = ReflectUtils.getMethod(activityClass, "onRequestPermissionsResult",
+                int.class, String[].class, int[].class);
 
         M_FRAGMENTS = ReflectUtils.getField(FragmentActivity.class, "mFragments");
         M_HOST = ReflectUtils.getField(FragmentController.class, "mHost");
@@ -752,7 +753,8 @@ public class ActivityHostProxy extends FragmentActivity implements Cloneable {
             @NonNull String[] permissions,
             @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        callTargetActivityMethod(ON_REQUEST_PERMISSIONS_RESULT, "onRequestPermissionsResult", requestCode, permissions, grantResults);
+        callTargetActivityMethod(ON_REQUEST_PERMISSIONS_RESULT, "onRequestPermissionsResult",
+                requestCode, permissions, grantResults);
     }
 
     private Object callTargetActivityMethod(Method method, String methodName, Object... args) {

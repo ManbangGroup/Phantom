@@ -381,7 +381,8 @@ public class PluginManager {
     /**
      * 安装 assets 中的插件
      *
-     * @param assetsApkPath   位于 assets 中的安装包文件路径（相对于 assets 根目录，比如：<code>"plugins/com.wlqq.phantom.plugin.test1_1.0.0.apk"</code>）
+     * @param assetsApkPath   位于 assets 中的安装包文件路径（相对于 assets 根目录，比如：
+     *                        <code>"plugins/com.wlqq.phantom.plugin.test1_1.0.0.apk"</code>）
      * @param checkVersion    是否检查版本号，若为 true, 则仅支持升级安装
      * @param checkSignatures 是否校验签名，若为 true, 则插件与宿主签名一致才能安装
      * @return 安装结果
@@ -877,7 +878,7 @@ public class PluginManager {
         @NonNull
         public final Map<String, String> pluginProvidedDependencies;
 
-        public CheckSharedLibraryDependenciesResult(boolean success,
+        CheckSharedLibraryDependenciesResult(boolean success,
                 @NonNull String message,
                 @Nullable Map<String, String> hostCompileDependencies,
                 @Nullable Map<String, String> pluginProvidedDependencies) {
@@ -897,7 +898,7 @@ public class PluginManager {
         @NonNull
         public final String message;
 
-        public CheckPhantomServiceDependenciesResult(boolean success, @NonNull String message) {
+        CheckPhantomServiceDependenciesResult(boolean success, @NonNull String message) {
             this.success = success;
             this.message = message;
         }

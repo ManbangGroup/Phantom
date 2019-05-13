@@ -102,7 +102,8 @@ abstract class ServiceHostProxy extends Service {
                 VLog.w(throwable, msg);
 
                 params.put(LogReporter.Key.MESSAGE, msg);
-                LogReporter.reportState(LogReporter.EventId.PLUGIN_SERVICE_START, false, targetInfo.packageName, params);
+                LogReporter.reportState(LogReporter.EventId.PLUGIN_SERVICE_START, false, targetInfo.packageName,
+                        params);
                 LogReporter.reportException(throwable, params);
 
                 return START_STICKY;
@@ -416,7 +417,6 @@ abstract class ServiceHostProxy extends Service {
      * <b>NOTE: </b>目前只支持 explicit intent
      *
      * @param intent 要启动的 Service
-     * @return
      */
     @Nullable
     private PluginInfo resolveServiceInfo(Intent intent) {

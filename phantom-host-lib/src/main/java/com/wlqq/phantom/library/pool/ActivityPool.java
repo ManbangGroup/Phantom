@@ -28,7 +28,8 @@ import java.util.Set;
 /**
  * 非标准启动模式 {@link ActivityInfo#LAUNCH_MULTIPLE} 坑位 {@link Activity} 复用池
  * <p/>
- * 若系统回收 {@link Activity}，则 {@link Activity#isFinishing()} 为 false；若是 {@link Activity} 退出，则 {@link Activity#isFinishing()} 为
+ * 若系统回收 {@link Activity}，则 {@link Activity#isFinishing()} 为 false；
+ * 若是 {@link Activity} 退出，则 {@link Activity#isFinishing()} 为
  * true
  * <p/>
  * 通知栏启动的 {@link Activity} 需要另外处理，

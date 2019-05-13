@@ -73,6 +73,7 @@ final class AndroidManifestParser {
     }
 
     @NonNull
+    @SuppressWarnings("checkstyle:AvoidNestedBlocks")
     static ComponentIntentFilters parse(@NonNull AssetManager assetManager) throws ParseApkException {
         String curName = null;
         IntentFilter curFilter = null;

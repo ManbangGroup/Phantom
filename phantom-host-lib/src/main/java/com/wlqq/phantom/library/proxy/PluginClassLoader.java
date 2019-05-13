@@ -91,7 +91,8 @@ public class PluginClassLoader extends DexClassLoader {
     /**
      * install extra dexes for Android 4.x
      *
-     * @see <a href="https://github.com/Qihoo360/RePlugin/pull/264/files">support multidex feature in plugin application for the ROM below LOLLIPOP</a>
+     * @see <a href="https://github.com/Qihoo360/RePlugin/pull/264/files">
+     *     support multidex feature in plugin application for the ROM below LOLLIPOP</a>
      * @deprecated apply to ROM before Lollipop,may be deprecated
      */
     private void installMultiDexBeforeLollipop(PluginInfo pi, ClassLoader parent) {

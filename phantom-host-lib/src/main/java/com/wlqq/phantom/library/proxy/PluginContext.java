@@ -42,7 +42,8 @@ public class PluginContext {
     private Class mTargetClass;
     private final ContextProxy<Activity> mContextProxy;
 
-    private final static Field[] ACTIVITY_FIELDS;
+    private static final Field[] ACTIVITY_FIELDS;
+
     static {
         ACTIVITY_FIELDS = Activity.class.getDeclaredFields();
     }
@@ -123,7 +124,8 @@ public class PluginContext {
 
         //设置输入法模式
         if (!mTargetClass.getName().equals(PluginInterceptActivity.class.getName())) {
-            ActivityInfo info = mPluginInfo.getActivityInfo(new ComponentName(mPluginInfo.packageName, mTargetClass.getName()));
+            ActivityInfo info = mPluginInfo.getActivityInfo(
+                    new ComponentName(mPluginInfo.packageName, mTargetClass.getName()));
             if (null != info && info.softInputMode != WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED) {
                 mBaseContext.getWindow().setSoftInputMode(info.softInputMode);
             }

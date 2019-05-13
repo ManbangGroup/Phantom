@@ -272,7 +272,8 @@ public class PhantomCore {
      *
      * @param activity    The activity to use
      * @param intent      插件 Activity，必须显式指定 {@link ComponentName}
-     * @param requestCode If {@literal requestCode >= 0}, this code will be returned in onActivityResult() when the activity exits.
+     * @param requestCode If {@literal requestCode >= 0}, this code will be returned in onActivityResult() when the
+     *                    activity exits.
      */
     public void startActivityForResult(@NonNull Activity activity, @NonNull Intent intent, int requestCode) {
         checkInit();
