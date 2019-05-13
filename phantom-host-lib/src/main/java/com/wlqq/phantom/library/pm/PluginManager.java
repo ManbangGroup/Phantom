@@ -706,13 +706,14 @@ public class PluginManager {
     @SuppressLint("PackageManagerGetSignatures")
     private Signature[] getHostSignatures() {
         if (mHostSignatures == null) {
+            final String packageName = mContext.getPackageName();
             try {
-                PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(
-                        mContext.getPackageName(), PackageManager.GET_SIGNATURES);
+                PackageInfo packageInfo = mContext.getPackageManager().getPackageInfo(packageName,
+                        PackageManager.GET_SIGNATURES);
                 mHostSignatures = packageInfo.signatures;
             } catch (PackageManager.NameNotFoundException e) {
                 // should not happen
-                e.printStackTrace();
+                VLog.w(e, "package %s not found", packageName);
             }
         }
         return mHostSignatures;

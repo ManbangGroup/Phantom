@@ -29,6 +29,7 @@ import com.wlqq.phantom.communication.IPhantomUtils;
 import com.wlqq.phantom.library.PhantomCore;
 import com.wlqq.phantom.library.pool.LaunchModeManager;
 import com.wlqq.phantom.library.pool.LaunchModeManager.ProxyActivityLessException;
+import com.wlqq.phantom.library.utils.VLog;
 
 
 public class PhantomUtilsImpl implements IPhantomUtils {
@@ -72,7 +73,7 @@ public class PhantomUtilsImpl implements IPhantomUtils {
             intent.putExtra("origin_intent", originIntent);
             return intent;
         } catch (ProxyActivityLessException e) {
-            e.printStackTrace();
+            VLog.w(e, "no available Proxy Activity found");
         }
 
         return null;

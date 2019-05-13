@@ -91,7 +91,8 @@ public class MainActivity extends AppCompatActivity {
                         for (String file : list) {
                             if (file.endsWith(".apk")) {
                                 final String filePath = pluginsDir + "/" + file;
-                                InstallResult installResult = PhantomCore.getInstance().installPluginFromAssets(filePath);
+                                InstallResult installResult = PhantomCore.getInstance().installPluginFromAssets(
+                                        filePath);
                                 if (installResult.isSuccess() && installResult.plugin != null) {
                                     installResult.plugin.start();
                                     mPluginList.add(Pair.<String, PluginInfo>create(filePath, installResult.plugin));
@@ -129,10 +130,10 @@ public class MainActivity extends AppCompatActivity {
     private void launchPlugin(final int position) {
         final Pair<String, PluginInfo> item = mPluginList.get(position);
         final String fileName = item.first;
-        final PluginInfo PluginInfo = item.second;
+        final PluginInfo pluginInfo = item.second;
 
-        if (PluginInfo != null && PluginInfo.isStarted()) {
-            launchPluginActivity(PluginInfo.packageName, PluginInfo.getLauncherActivities());
+        if (pluginInfo != null && pluginInfo.isStarted()) {
+            launchPluginActivity(pluginInfo.packageName, pluginInfo.getLauncherActivities());
         } else {
             new AsyncTask<Object, Void, PluginInfo>() {
 
@@ -174,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-            }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, fileName, PluginInfo);
+            }.executeOnExecutor(AsyncTask.SERIAL_EXECUTOR, fileName, pluginInfo);
         }
 
 

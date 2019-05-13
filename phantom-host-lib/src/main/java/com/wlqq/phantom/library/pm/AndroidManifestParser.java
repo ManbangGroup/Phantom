@@ -26,6 +26,8 @@ import android.support.v4.util.ArrayMap;
 import android.support.v4.util.ArraySet;
 import android.text.TextUtils;
 
+import com.wlqq.phantom.library.utils.VLog;
+
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -181,7 +183,7 @@ final class AndroidManifestParser {
                                                 curFilter.addDataType(bean.mimeType);
                                             }
                                         } catch (IntentFilter.MalformedMimeTypeException e) {
-                                            e.printStackTrace();
+                                            VLog.w(e, "invalid mime type: %s", bean.mimeType);
                                         }
                                     }
                                 }

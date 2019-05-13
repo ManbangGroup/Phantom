@@ -35,8 +35,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.ZipFile;
 
-import static com.wlqq.phantom.library.utils.IoUtils.closeQuietly;
-
 public final class FileUtils {
 
     /**
@@ -147,10 +145,10 @@ public final class FileUtils {
                 copyStream(source, output);
                 output.close(); // don't swallow close Exception if copy completes normally
             } finally {
-                closeQuietly(output);
+                IoUtils.closeQuietly(output);
             }
         } finally {
-            closeQuietly(source);
+            IoUtils.closeQuietly(source);
         }
     }
 
@@ -198,10 +196,10 @@ public final class FileUtils {
                 pos += output.transferFrom(input, pos, count);
             }
         } finally {
-            closeQuietly(output);
-            closeQuietly(fos);
-            closeQuietly(input);
-            closeQuietly(fis);
+            IoUtils.closeQuietly(output);
+            IoUtils.closeQuietly(fos);
+            IoUtils.closeQuietly(input);
+            IoUtils.closeQuietly(fis);
         }
 
         if (srcFile.length() != destFile.length()) {
@@ -272,7 +270,7 @@ public final class FileUtils {
             VLog.w(e, "Unable to process file for MD5");
             return null;
         } finally {
-            closeQuietly(inputStream);
+            IoUtils.closeQuietly(inputStream);
         }
     }
 

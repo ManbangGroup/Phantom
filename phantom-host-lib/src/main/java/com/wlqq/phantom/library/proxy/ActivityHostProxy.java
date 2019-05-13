@@ -336,7 +336,8 @@ public class ActivityHostProxy extends FragmentActivity implements Cloneable {
             shadow.useHostTheme();
             return shadow;
         } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
+            VLog.w(e, "clone ActivityHostProxy exception");
+
             String msg = String.format("proxy %s for plugin activity %s cannot clone",
                     this.getClass().getSimpleName(), mPluginComponentName);
             HashMap<String, Object> params = new HashMap<>(1);
@@ -733,7 +734,7 @@ public class ActivityHostProxy extends FragmentActivity implements Cloneable {
         try {
             return getFragmentManager().popBackStackImmediate();
         } catch (IllegalStateException e) {
-            e.printStackTrace();
+            VLog.w(e, "FragmentManager#popBackStackImmediate exception");
         }
 
         return true;
