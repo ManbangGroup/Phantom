@@ -9,8 +9,8 @@
 
 - 不支持隐式 `Intent` 启动
 - 插件不支持 `ContentProvider`
-- 插件不支持使用 `overridePendingTransition` 设置 `Activity` 切换动画
 - 插件使用 `Application#registerActivityLifecycleCallbacks` 注册回调无效
+- 插件中不支持 `JobService`, `JobIntentService`
 
 ## 通知
 
