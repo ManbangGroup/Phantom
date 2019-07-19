@@ -40,6 +40,19 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+
+/**
+ * A {@code ClassLoader} implementation that implements a <b>delegate last</b> lookup policy.
+ * For every class or resource this loader is requested to load, the following lookup order
+ * is employed:
+ *
+ * <ul>
+ *     <li>The boot classpath is always searched first</li>
+ *     <li>Then, the list of {@code dex} files associated with this classloaders's
+ *     {@code dexPath} is searched.</li>
+ *     <li>Finally, this classloader will delegate to the specified {@code parent}.</li>
+ * </ul>
+ */
 public class PluginClassLoader extends DexClassLoader {
     private static final String TAG = "PluginClassLoader";
     // how to enable detail log
@@ -63,21 +76,38 @@ public class PluginClassLoader extends DexClassLoader {
         }
     }
 
+    // copied from https://android.googlesource.com/platform/libcore/+/master/dalvik/src/main/java/dalvik/system/DelegateLastClassLoader.java
     @Override
-    public Class<?> loadClass(String className) throws ClassNotFoundException {
-        Class<?> clazz = null;
-
+    public Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        // First, check whether the class has already been loaded. Return it if that's the
+        // case.
+        Class<?> cl = findLoadedClass(name);
+        if (cl != null) {
+            return cl;
+        }
+        // Next, check whether the class in question is present in the boot classpath.
         try {
-            clazz = findClassFast(className);
-        } catch (ClassNotFoundException e) {
-            // ignore it on purpose
+            return Object.class.getClassLoader().loadClass(name);
+        } catch (ClassNotFoundException ignored) {
         }
-
-        if (clazz != null) {
-            return clazz;
+        // Next, check whether the class in question is present in the dexPath that this classloader
+        // operates on, or its shared libraries.
+        ClassNotFoundException fromSuper;
+        try {
+            return findClass(name);
+        } catch (ClassNotFoundException ex) {
+            fromSuper = ex;
         }
-
-        return super.loadClass(className);
+        // Finally, check whether the class in question is present in the parent classloader.
+        try {
+            return getParent().loadClass(name);
+        } catch (ClassNotFoundException cnfe) {
+            // The exception we're catching here is the CNFE thrown by the parent of this
+            // classloader. However, we would like to throw a CNFE that provides details about
+            // the class path / list of dex files associated with *this* classloader, so we choose
+            // to throw the exception thrown from that lookup.
+            throw fromSuper;
+        }
     }
 
     Class<?> findClassFast(String className) throws ClassNotFoundException {
